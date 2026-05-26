@@ -10,7 +10,7 @@
 #   make clean         remove node_modules, dist, and public/ in all components
 #   make clean-build   clean + build
 
-MODULES := mermaid markdown chartjs
+MODULES := mermaid markdown chartjs voice
 
 .PHONY: help build lint lint-fix clean clean-build \
         $(addprefix build-,$(MODULES)) \

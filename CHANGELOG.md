@@ -7,6 +7,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `wippy-wc-extras/voice` — `<wippy-voice-orb>` web component. Animated voice widget
+  with STT (Deepgram / Whisper WASM) and TTS (Deepgram / ElevenLabs). Includes backend
+  Lua API endpoints (`ask`, `tts-token`, `pages`) as supporting glue. Provider selection
+  and credentials are configured via environment variables.
+
 ---
 
 ## [0.1.0] — 2026-05-26

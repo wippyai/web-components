@@ -1,0 +1,202 @@
+version: "1.0"
+namespace: wippy-wc-extras.voice
+
+entries:
+  # ── Module Definition ──
+  - name: definition
+    kind: ns.definition
+    meta:
+      title: Voice Orb Web Component
+      description: |
+        Provides the <wippy-voice-orb> custom element — animated voice widget
+        with STT (Deepgram / Whisper) and TTS (Deepgram / ElevenLabs).
+        Includes backend API endpoints for session management and TTS token
+        provisioning. Part of wippy-wc-extras.
+
+  # ── Requirements (injected by consuming app) ──
+  - name: server
+    kind: ns.requirement
+    meta:
+      description: HTTP server for static file serving — typically your app's gateway.
+    targets:
+      - entry: wippy-wc-extras.voice:static
+        path: .meta.server
+
+  - name: env_storage
+    kind: ns.requirement
+    meta:
+      description: Environment variable storage location
+    targets:
+      - entry: wippy-wc-extras.voice.env:tts_provider
+        path: .storage
+      - entry: wippy-wc-extras.voice.env:deepgram_api_key
+        path: .storage
+      - entry: wippy-wc-extras.voice.env:deepgram_model
+        path: .storage
+      - entry: wippy-wc-extras.voice.env:elevenlabs_api_key
+        path: .storage
+      - entry: wippy-wc-extras.voice.env:elevenlabs_voice_id
+        path: .storage
+      - entry: wippy-wc-extras.voice.env:elevenlabs_model_id
+        path: .storage
+      - entry: wippy-wc-extras.voice.env:stt_provider
+        path: .storage
+
+  - name: router
+    kind: ns.requirement
+    meta:
+      description: Authenticated API router for voice endpoints
+    targets:
+      - entry: wippy-wc-extras.voice:ask.endpoint
+        path: .meta.router
+      - entry: wippy-wc-extras.voice:pages.endpoint
+        path: .meta.router
+      - entry: wippy-wc-extras.voice:tts_token.endpoint
+        path: .meta.router
+
+  # ── Contract ──
+  - name: agent_resolver
+    kind: contract.definition
+    meta:
+      description: Resolves page context to the correct agent ID. App-specific implementation.
+    methods:
+      - name: resolve
+        description: Given page context (page, params), returns the agent ID to use for this page
+
+  # ── Libraries ──
+  - name: agents
+    kind: library.lua
+    source: file://agents.lua
+    modules:
+      - registry
+    imports:
+      agent_registry: wippy.agent.discovery:registry
+
+  - name: context
+    kind: library.lua
+    source: file://context.lua
+    modules:
+      - json
+
+  - name: session
+    kind: library.lua
+    source: file://session.lua
+    modules:
+      - json
+      - logger
+
+  # ── Functions ──
+  - name: ask
+    kind: function.lua
+    source: file://ask.lua
+    method: handler
+    imports:
+      session: wippy-wc-extras.voice:session
+      context: wippy-wc-extras.voice:context
+      agents: wippy-wc-extras.voice:agents
+      start_tokens: wippy.session:start_tokens
+    modules:
+      - http
+      - json
+      - security
+      - time
+      - logger
+      - contract
+    pool:
+      size: 4
+
+  - name: pages
+    kind: function.lua
+    source: file://pages.lua
+    method: handler
+    imports:
+      agents: wippy-wc-extras.voice:agents
+      start_tokens: wippy.session:start_tokens
+    modules:
+      - http
+      - json
+      - security
+    pool:
+      size: 2
+
+  - name: tts_token
+    kind: function.lua
+    source: file://tts_token.lua
+    method: handler
+    modules:
+      - http
+      - json
+      - env
+      - security
+      - http_client
+    pool:
+      size: 2
+
+  # ── HTTP Endpoints ──
+  - name: ask.endpoint
+    kind: http.endpoint
+    method: POST
+    func: ask
+    path: /voice/ask
+
+  - name: pages.endpoint
+    kind: http.endpoint
+    method: GET
+    func: pages
+    path: /voice/pages
+
+  - name: tts_token.endpoint
+    kind: http.endpoint
+    method: POST
+    func: tts_token
+    path: /voice/tts-token
+
+  # ── Static File Serving ──
+  - name: public_files
+    kind: fs.directory
+    meta:
+      comment: Voice Orb web component bundle
+    directory: ./public/
+    mode: "0755"
+
+  - name: static
+    kind: http.static
+    meta:
+      comment: Serves voice web component bundle
+      server: server
+    fs: public_files
+    directory: /
+    path: /wippy-wc-extras/voice
+    options:
+      mime_types:
+        .js: application/javascript
+        .css: text/css
+        .map: application/json
+
+  # ── View Registration ──
+  - name: wippy-voice-orb
+    kind: registry.entry
+    meta:
+      type: view.component
+      name: wippy-voice-orb
+      title: Voice Orb
+      tag_name: wippy-voice-orb
+      entry_point: index.js
+      announced: true
+      secure: false
+      auto_register: true
+      url: /wippy-wc-extras/voice
+      description: |
+        Animated voice input/output widget. Self-contained — no props required.
+        Connects to the host app via the Wippy proxy to handle voice sessions,
+        speech-to-text (Deepgram / Whisper), and text-to-speech
+        (Deepgram / ElevenLabs). Requires the wippy-wc-extras/voice backend
+        (ask, tts-token, pages endpoints) to be wired to an authenticated
+        API router.
+
+        Example:
+
+        <wippy-voice-orb />
+    props:
+      type: object
+      properties: {}

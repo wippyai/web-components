@@ -163,6 +163,47 @@ Renders any [Chart.js v4](https://www.chartjs.org/) chart type from a single tag
 
 ---
 
+### `wippy-wc-extras/voice` — `<wippy-voice-orb>`
+
+Animated voice input/output widget. Handles the full voice loop: speech-to-text, session management, and text-to-speech. Self-contained — no props required. Connects to the host app via the Wippy proxy.
+
+**STT providers:** `deepgram` (default, cloud, low latency) · `whisper` (local WASM, offline-capable)
+
+**TTS providers:** `deepgram` (default) · `elevenlabs`
+
+**Props:** None — the component is fully self-contained and driven by the proxy session context.
+
+**Backend requirements:** Needs three API endpoints wired to an authenticated router:
+- `POST /voice/ask` — session + agent routing
+- `POST /voice/tts-token` — TTS/STT credential provisioning
+- `GET /voice/pages` — page-to-agent mapping
+
+**Example:**
+
+```html
+<wippy-voice-orb />
+```
+
+**Dependency declaration:**
+
+```yaml
+- name: wc-voice
+  kind: ns.dependency
+  component: wippy-wc-extras/voice
+  version: ">=v0.1.0"
+  parameters:
+    - name: server
+      value: app:gateway
+    - name: router
+      value: app:authenticated_api
+    - name: env_storage
+      value: app:env_storage
+```
+
+> **Note:** The voice module bundles ONNX Runtime and a Whisper transcriber worker (~130 MB of WASM/JS). These are gitignored — run `cd src/voice && make build` before first use or after a fresh clone.
+
+---
+
 ## Using multiple modules together
 
 Each module is an independent `ns.dependency`. Declare them all and wire each to the same gateway:
@@ -195,7 +236,7 @@ Each module is an independent `ns.dependency`. Declare them all and wire each to
       value: app:gateway
 ```
 
-All three tags (`<wippy-mermaid>`, `<wippy-markdown>`, `<wippy-chartjs>`) will be auto-registered and available in any page or artifact.
+All four tags (`<wippy-mermaid>`, `<wippy-markdown>`, `<wippy-chartjs>`, `<wippy-voice-orb>`) will be auto-registered and available in any page or artifact.
 
 ---
 
@@ -213,6 +254,8 @@ replacements:
     to: ../web-components/src/markdown
   - from: wippy-wc-extras/chartjs
     to: ../web-components/src/chartjs
+  - from: wippy-wc-extras/voice
+    to: ../web-components/src/voice
 ```
 
 Paths are relative to the `wippy.lock` file.
@@ -232,6 +275,7 @@ make build
 cd src/mermaid/frontend && npm run build
 cd src/markdown/frontend && npm run build
 cd src/chartjs/frontend && npm run build
+cd src/voice/frontend && npm run build
 ```
 
 ### Linting
@@ -247,6 +291,7 @@ make lint
 cd src/mermaid/frontend && npm run lint
 cd src/markdown/frontend && npm run lint
 cd src/chartjs/frontend && npm run lint
+cd src/voice/frontend && npm run lint
 ```
 
 ---
@@ -264,8 +309,9 @@ web-components/
 │   │   ├── frontend/        # Vue 3 + TypeScript source
 │   │   └── public/          # Built bundle (embedded, served at /wippy-wc-extras/mermaid/)
 │   ├── markdown/            # Same layout
-│   └── chartjs/             # Same layout
+│   ├── chartjs/             # Same layout
+│   └── voice/               # Same layout + env/ sub-module + Lua backend files
 ├── Makefile                 # Root — delegates to per-module Makefiles
 ├── wippy.lock               # Root lock (src: ./src — discovers all modules)
-└── wippy.exe                # Wippy CLI
+└── wippy.exe                # Wippy CLI (gitignored — copy from wippy-framework)
 ```

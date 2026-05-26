@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        package: [mermaid, markdown, chartjs]
+        package: [mermaid, markdown, chartjs, voice]
 
     steps:
       - uses: actions/checkout@v4

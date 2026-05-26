@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        component: [mermaid, markdown, chartjs]
+        component: [mermaid, markdown, chartjs, voice]
 
     steps:
       - uses: actions/checkout@v4

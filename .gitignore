@@ -12,6 +12,9 @@ src/*/frontend/node_modules/
 # Build output (vite dist — intermediate, not the embedded public/)
 src/*/frontend/dist/
 
+# voice public/ contains ONNX Runtime + Whisper worker (>100 MB each — must build locally)
+src/voice/public/
+
 # Local environment
 .env
 .env.local

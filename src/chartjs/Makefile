@@ -11,16 +11,16 @@
 .PHONY: build install lint lint-fix clean
 
 install:
-	cd frontend && npm install
+	cd frontend && pnpm install
 
 build: install
-	cd frontend && npm run build
+	cd frontend && pnpm run build
 
 lint: install
-	cd frontend && npm run lint
+	cd frontend && pnpm run lint
 
 lint-fix: install
-	cd frontend && npm run lint:fix
+	cd frontend && pnpm run lint:fix
 
 clean:
 	rm -rf frontend/node_modules frontend/dist public

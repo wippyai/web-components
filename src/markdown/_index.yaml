@@ -1,0 +1,112 @@
+version: "1.0"
+namespace: wippy-wc-extras.markdown
+
+entries:
+  - name: definition
+    kind: ns.definition
+    meta:
+      title: Markdown Viewer Web Component
+      description: |
+        Provides the <wippy-markdown> custom element. Drop into any app via
+        `ns.dependency`, wire the `server` requirement to your gateway, and
+        the tag auto-registers on the next start — no copy-paste, no per-app
+        setup.
+
+        Renders GitHub-Flavored Markdown to safe HTML using markdown-it and
+        sanitize-html. Conservative default allowlist is safe for arbitrary
+        input; widen via `allowed-tags` / `allowed-attributes` only for
+        trusted content.
+
+        Part of the wippy-wc-extras collection.
+
+  - name: server
+    kind: ns.requirement
+    meta:
+      description: The http.service entry that hosts this module's static bundle — typically your app's gateway.
+    targets:
+      - entry: wippy-wc-extras.markdown:static
+        path: .meta.server
+
+  - name: public_files
+    kind: fs.directory
+    meta:
+      comment: Built markdown web component bundle
+    directory: ./public/
+    mode: "0755"
+
+  - name: static
+    kind: http.static
+    meta:
+      comment: Serves markdown web component bundle
+      server: server
+    fs: public_files
+    directory: /
+    path: /wippy-wc-extras/markdown
+    options:
+      mime_types:
+        .js: application/javascript
+        .css: text/css
+        .map: application/json
+
+  - name: wippy-markdown
+    kind: registry.entry
+    meta:
+      type: view.component
+      name: wippy-markdown
+      title: Markdown Viewer
+      tag_name: wippy-markdown
+      entry_point: index.js
+      announced: true
+      secure: false
+      auto_register: true
+      url: /wippy-wc-extras/markdown
+      description: |
+        Renders GitHub-Flavored Markdown to safe HTML. Pass markdown source
+        via the `content` attribute. Output is sanitized with sanitize-html
+        using a conservative default allowlist; widen it via `allowed-tags`
+        and `allowed-attributes` only for trusted content.
+
+        Features: headings, bold/italic, ordered/bulleted lists (nested),
+        tables with alignment, fenced code blocks with language hints,
+        inline code, blockquotes, links, images, autolinks, strikethrough,
+        horizontal rules. Note: GFM task lists (`- [x]`) and footnotes are
+        NOT enabled by default (require markdown-it plugins not bundled here).
+
+        Examples:
+
+        <wippy-markdown content="# Hello
+        This is **bold** and *italic* with [a link](https://example.com)." />
+
+        <wippy-markdown content="## Steps
+        1. First
+        2. Second
+           - Nested bullet
+        " />
+
+        <wippy-markdown content="| Col A | Col B |
+        |:------|------:|
+        | left  |  right |" />
+
+        Security: do NOT widen `allowed-tags` for untrusted markdown — anything
+        you allow can be emitted by the source. Default allowlist is safe for
+        arbitrary input.
+    props:
+      type: object
+      properties:
+        content:
+          type: string
+          default: ""
+          description: Markdown source text to render (GFM)
+        allowed-tags:
+          type: array
+          items:
+            type: string
+          default: []
+          description: |
+            Override sanitizer tag whitelist (empty = built-in defaults).
+            WARNING: widening this is a security decision — only do it for
+            trusted input.
+        allowed-attributes:
+          type: string
+          default: ""
+          description: 'JSON-stringified {tag: [attr,...]} map for sanitize-html (empty = defaults)'

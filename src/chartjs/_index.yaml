@@ -1,0 +1,118 @@
+version: "1.0"
+namespace: wippy-wc-extras.chartjs
+
+entries:
+  - name: definition
+    kind: ns.definition
+    meta:
+      title: Chart.js Web Component
+      description: |
+        Provides the <wippy-chartjs> custom element. Drop into any app via
+        `ns.dependency`, wire the `server` requirement to your gateway, and
+        the tag auto-registers on the next start — no copy-paste, no per-app
+        setup.
+
+        Renders any Chart.js v4 chart type — line, bar, doughnut, pie, radar,
+        polarArea, scatter, bubble — from a single tag. Auto-fills dataset
+        colors from the host's CSS palette when not provided.
+
+        Part of the wippy-wc-extras collection.
+
+  - name: server
+    kind: ns.requirement
+    meta:
+      description: The http.service entry that hosts this module's static bundle — typically your app's gateway.
+    targets:
+      - entry: wippy-wc-extras.chartjs:static
+        path: .meta.server
+
+  - name: public_files
+    kind: fs.directory
+    meta:
+      comment: Built chartjs web component bundle
+    directory: ./public/
+    mode: "0755"
+
+  - name: static
+    kind: http.static
+    meta:
+      comment: Serves chartjs web component bundle
+      server: server
+    fs: public_files
+    directory: /
+    path: /wippy-wc-extras/chartjs
+    options:
+      mime_types:
+        .js: application/javascript
+        .css: text/css
+        .map: application/json
+
+  - name: wippy-chartjs
+    kind: registry.entry
+    meta:
+      type: view.component
+      name: wippy-chartjs
+      title: Chart.js (universal)
+      tag_name: wippy-chartjs
+      entry_point: index.js
+      announced: true
+      secure: false
+      auto_register: true
+      url: /wippy-wc-extras/chartjs
+      description: |
+        Renders ANY Chart.js v4 chart from a single tag. Pass the chart type
+        via `type` and the full Chart.js Data object as a JSON string via
+        `data`. `options` and `plugins` are JSON-string passthroughs to
+        Chart.js.
+
+        Supported types: line (trends over time), bar (categorical
+        comparison), doughnut / pie (parts of a whole, ≤7 categories),
+        radar (multi-axis comparison), polarArea (categorical with
+        magnitude), scatter (x/y point clouds), bubble (x/y/r 3-dim data).
+
+        When a dataset omits `backgroundColor` (and `borderColor` for
+        line/bar/radar/scatter/bubble), the component fills it from the
+        host's CSS palette (`--p-primary-500`, `--p-danger-500`,
+        `--p-warn-500`, `--p-secondary-500`, `--p-accent-500`, plus
+        300-tone variants). Override per-dataset to force exact colors.
+
+        Examples:
+
+        <wippy-chartjs
+          type="bar"
+          data='{"labels":["Q1","Q2","Q3","Q4"],"datasets":[{"label":"Revenue","data":[12,19,7,22]}]}'
+          options='{"responsive":true,"plugins":{"title":{"display":true,"text":"2026 Revenue"}}}' />
+
+        <wippy-chartjs
+          type="line"
+          data='{"labels":["Jan","Feb","Mar","Apr"],"datasets":[{"label":"Users","data":[100,150,180,210]}]}' />
+
+        <wippy-chartjs
+          type="doughnut"
+          data='{"labels":["Chrome","Safari","Firefox","Edge"],"datasets":[{"data":[63,18,4,15]}]}' />
+
+        Notes: `data` must be valid JSON — escape inner quotes correctly when
+        embedding in HTML attributes. JSON parse errors render as an inline
+        error banner instead of crashing. Size the chart by setting
+        `style="height:300px"` on the wrapping element since the canvas is
+        responsive by default.
+    props:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: ["line", "bar", "doughnut", "pie", "radar", "polarArea", "scatter", "bubble"]
+          default: "doughnut"
+          description: Chart.js chart type
+        data:
+          type: string
+          default: ""
+          description: 'JSON-stringified Chart.js Data object: { labels?, datasets: [{label?, data, ...}] }'
+        options:
+          type: string
+          default: ""
+          description: JSON-stringified Chart.js Options object (optional)
+        plugins:
+          type: string
+          default: ""
+          description: JSON-stringified array of Chart.js plugin definitions (optional)

@@ -1,0 +1,27 @@
+# Wippy binary (>100 MB — too large for GitHub)
+wippy.exe
+
+# Wippy runtime state
+.wippy/
+src/*/.wippy/
+
+# Node.js
+node_modules/
+src/*/frontend/node_modules/
+
+# Build output (vite dist — intermediate, not the embedded public/)
+src/*/frontend/dist/
+
+# Local environment
+.env
+.env.local
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

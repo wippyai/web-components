@@ -1,0 +1,109 @@
+version: "1.0"
+namespace: wippy-wc-extras.mermaid
+
+entries:
+  - name: definition
+    kind: ns.definition
+    meta:
+      title: Mermaid Diagram Web Component
+      description: |
+        Provides the <wippy-mermaid> custom element. Drop into any app via
+        `ns.dependency`, wire the `server` requirement to your gateway, and
+        the tag auto-registers on the next start — no copy-paste, no per-app
+        setup.
+
+        Renders any Mermaid v11 diagram type. A fast primary engine handles
+        flowchart, sequence, class, ER, state, and xychart. All other types
+        (pie, gantt, mindmap, journey, gitGraph, timeline, sankey, …) fall
+        back to the full mermaid library, loaded lazily on first use.
+
+        Part of the wippy-wc-extras collection.
+
+  - name: server
+    kind: ns.requirement
+    meta:
+      description: The http.service entry that hosts this module's static bundle — typically your app's gateway.
+    targets:
+      - entry: wippy-wc-extras.mermaid:static
+        path: .meta.server
+
+  - name: public_files
+    kind: fs.directory
+    meta:
+      comment: Built mermaid web component bundle
+    directory: ./public/
+    mode: "0755"
+
+  - name: static
+    kind: http.static
+    meta:
+      comment: Serves mermaid web component bundle
+      server: server
+    fs: public_files
+    directory: /
+    path: /wippy-wc-extras/mermaid
+    options:
+      mime_types:
+        .js: application/javascript
+        .css: text/css
+        .map: application/json
+
+  - name: wippy-mermaid
+    kind: registry.entry
+    meta:
+      type: view.component
+      name: wippy-mermaid
+      title: Mermaid Diagram
+      tag_name: wippy-mermaid
+      entry_point: index.js
+      announced: true
+      secure: false
+      auto_register: true
+      url: /wippy-wc-extras/mermaid
+      description: |
+        Renders any Mermaid v11 diagram. Pass the diagram source via the
+        `definition` attribute (NOT as text content). Supports flowchart,
+        sequenceDiagram, classDiagram, stateDiagram, erDiagram, journey,
+        gantt, pie, mindmap, timeline, gitGraph, quadrantChart,
+        requirementDiagram, sankey, xychart, block, packet, kanban,
+        architecture, radar.
+
+        Flowchart, sequence, class, ER, state, and xychart use a fast
+        primary engine. Less common types fall back to a heavier renderer
+        that loads on first use; the diagram appears after a brief delay.
+
+        Examples:
+
+        <wippy-mermaid definition="flowchart LR
+          Start([User opens app]) --> Auth{Token present?}
+          Auth -- yes --> Home[Home screen]
+          Auth -- no --> Login[Login form]" />
+
+        <wippy-mermaid definition="sequenceDiagram
+          participant U as User
+          participant H as Host
+          participant C as Child
+          U->>H: load
+          H->>C: SetConfig
+          C-->>H: GetConfig" />
+
+        <wippy-mermaid definition="pie title Where time goes
+          &quot;Sleep&quot; : 33
+          &quot;Work&quot;  : 30
+          &quot;Other&quot; : 37" />
+
+        Notes: newlines in `definition` must reach the attribute as real
+        newlines. Render errors surface as an inline error banner — the host
+        never throws. Use `transparent="false"` on dark backgrounds for a
+        solid card.
+    props:
+      type: object
+      properties:
+        definition:
+          type: string
+          default: ""
+          description: Mermaid v11 diagram source. Newlines must be real LF characters in the attribute value.
+        transparent:
+          type: boolean
+          default: true
+          description: Whether the diagram background is transparent (set false to render on a solid card)

@@ -1,0 +1,32 @@
+name: Publish
+
+on:
+  release:
+    types: [published]
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish (${{ matrix.package }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [mermaid, markdown, chartjs]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Publish module
+        uses: wippyai/action-module-release@main
+        with:
+          directory: src/${{ matrix.package }}
+          tag: ${{ github.ref_name }}
+          username: ${{ secrets.WIPPY_USERNAME }}
+          password: ${{ secrets.WIPPY_PASSWORD }}

@@ -1,5 +1,5 @@
 version: "1.0"
-namespace: wippy-wc-extras.chartjs
+namespace: wippy-swiss.chartjs
 
 entries:
   - name: definition
@@ -16,14 +16,14 @@ entries:
         polarArea, scatter, bubble — from a single tag. Auto-fills dataset
         colors from the host's CSS palette when not provided.
 
-        Part of the wippy-wc-extras collection.
+        Part of the wippy-swiss collection.
 
   - name: server
     kind: ns.requirement
     meta:
       description: The http.service entry that hosts this module's static bundle — typically your app's gateway.
     targets:
-      - entry: wippy-wc-extras.chartjs:static
+      - entry: wippy-swiss.chartjs:static
         path: .meta.server
 
   - name: public_files
@@ -40,7 +40,7 @@ entries:
       server: server
     fs: public_files
     directory: /
-    path: /wippy-wc-extras/chartjs
+    path: /@static-wippy-swiss/chartjs
     options:
       mime_types:
         .js: application/javascript
@@ -58,7 +58,7 @@ entries:
       announced: true
       secure: false
       auto_register: true
-      url: /wippy-wc-extras/chartjs
+      url: /@static-wippy-swiss/chartjs
       description: |
         Renders ANY Chart.js v4 chart from a single tag. Pass the chart type
         via `type` and the full Chart.js Data object as a JSON string via

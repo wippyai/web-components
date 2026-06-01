@@ -9,12 +9,12 @@ self.onmessage = async (e: MessageEvent) => {
     const { model, wasmPaths } = e.data
     try {
       const ort = await import('onnxruntime-web')
-      ort.env.wasm.wasmPaths = wasmPaths
+      ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.26.0/dist/'
       ort.env.wasm.numThreads = 1
       ort.env.wasm.simd = true
       ort.env.wasm.proxy = false
       asr = await pipeline('automatic-speech-recognition', model, {
-        dtype: 'q8',
+        dtype: 'fp32',
         device: 'wasm',
         progress_callback: (p: any) => {
           if (p.progress) self.postMessage({ type: 'progress', progress: p.progress })

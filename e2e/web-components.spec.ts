@@ -1,5 +1,5 @@
 /**
- * End-to-end tests for the wippy-wc-extras web components:
+ * End-to-end tests for the wippy-swiss web components:
  *   <wippy-mermaid>, <wippy-markdown>, <wippy-chartjs>
  *
  * Requires a running wippy stack (e.g. app-template-raw) with replacements
@@ -38,7 +38,7 @@ const COMPONENTS: WCFixture[] = [
   },
 ]
 
-test.describe('wippy-wc-extras web components', () => {
+test.describe('wippy-swiss web components', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page)
     await navigateHostTo(page, 'Iframe Demo')

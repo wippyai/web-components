@@ -2,13 +2,13 @@ import 'dotenv/config'
 import { defineConfig, devices } from '@playwright/test'
 
 /**
- * Playwright config for the wippy-wc-extras E2E suite.
+ * Playwright config for the wippy-swiss E2E suite.
  *
  * Expects an external wippy app stack (e.g. app-template-raw) to be running
  * with replacements pointing to this repo's modules:
  *
  *   wippy.lock replacements:
- *     - from: wippy-wc-extras/mermaid
+ *     - from: wippy-swiss/mermaid
  *       to: ../web-components/src/mermaid
  *     ... etc.
  *

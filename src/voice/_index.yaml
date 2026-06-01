@@ -1,5 +1,5 @@
 version: "1.0"
-namespace: wippy-wc-extras.voice
+namespace: wippy-swiss.voice
 
 entries:
   # ── Module Definition ──
@@ -11,7 +11,7 @@ entries:
         Provides the <wippy-voice-orb> custom element — animated voice widget
         with STT (Deepgram / Whisper) and TTS (Deepgram / ElevenLabs).
         Includes backend API endpoints for session management and TTS token
-        provisioning. Part of wippy-wc-extras.
+        provisioning. Part of wippy-swiss.
 
   # ── Requirements (injected by consuming app) ──
   - name: server
@@ -19,7 +19,7 @@ entries:
     meta:
       description: HTTP server for static file serving — typically your app's gateway.
     targets:
-      - entry: wippy-wc-extras.voice:static
+      - entry: wippy-swiss.voice:static
         path: .meta.server
 
   - name: env_storage
@@ -27,19 +27,19 @@ entries:
     meta:
       description: Environment variable storage location
     targets:
-      - entry: wippy-wc-extras.voice.env:tts_provider
+      - entry: wippy-swiss.voice.env:tts_provider
         path: .storage
-      - entry: wippy-wc-extras.voice.env:deepgram_api_key
+      - entry: wippy-swiss.voice.env:deepgram_api_key
         path: .storage
-      - entry: wippy-wc-extras.voice.env:deepgram_model
+      - entry: wippy-swiss.voice.env:deepgram_model
         path: .storage
-      - entry: wippy-wc-extras.voice.env:elevenlabs_api_key
+      - entry: wippy-swiss.voice.env:elevenlabs_api_key
         path: .storage
-      - entry: wippy-wc-extras.voice.env:elevenlabs_voice_id
+      - entry: wippy-swiss.voice.env:elevenlabs_voice_id
         path: .storage
-      - entry: wippy-wc-extras.voice.env:elevenlabs_model_id
+      - entry: wippy-swiss.voice.env:elevenlabs_model_id
         path: .storage
-      - entry: wippy-wc-extras.voice.env:stt_provider
+      - entry: wippy-swiss.voice.env:stt_provider
         path: .storage
 
   - name: router
@@ -47,11 +47,11 @@ entries:
     meta:
       description: Authenticated API router for voice endpoints
     targets:
-      - entry: wippy-wc-extras.voice:ask.endpoint
+      - entry: wippy-swiss.voice:ask.endpoint
         path: .meta.router
-      - entry: wippy-wc-extras.voice:pages.endpoint
+      - entry: wippy-swiss.voice:pages.endpoint
         path: .meta.router
-      - entry: wippy-wc-extras.voice:tts_token.endpoint
+      - entry: wippy-swiss.voice:tts_token.endpoint
         path: .meta.router
 
   # ── Contract ──
@@ -91,9 +91,9 @@ entries:
     source: file://ask.lua
     method: handler
     imports:
-      session: wippy-wc-extras.voice:session
-      context: wippy-wc-extras.voice:context
-      agents: wippy-wc-extras.voice:agents
+      session: wippy-swiss.voice:session
+      context: wippy-swiss.voice:context
+      agents: wippy-swiss.voice:agents
       start_tokens: wippy.session:start_tokens
     modules:
       - http
@@ -110,7 +110,7 @@ entries:
     source: file://pages.lua
     method: handler
     imports:
-      agents: wippy-wc-extras.voice:agents
+      agents: wippy-swiss.voice:agents
       start_tokens: wippy.session:start_tokens
     modules:
       - http
@@ -166,7 +166,7 @@ entries:
       server: server
     fs: public_files
     directory: /
-    path: /wippy-wc-extras/voice
+    path: /@static-wippy-swiss/voice
     options:
       mime_types:
         .js: application/javascript
@@ -185,12 +185,12 @@ entries:
       announced: true
       secure: false
       auto_register: true
-      url: /wippy-wc-extras/voice
+      url: /@static-wippy-swiss/voice
       description: |
         Animated voice input/output widget. Self-contained — no props required.
         Connects to the host app via the Wippy proxy to handle voice sessions,
         speech-to-text (Deepgram / Whisper), and text-to-speech
-        (Deepgram / ElevenLabs). Requires the wippy-wc-extras/voice backend
+        (Deepgram / ElevenLabs). Requires the wippy-swiss/voice backend
         (ask, tts-token, pages endpoints) to be wired to an authenticated
         API router.
 

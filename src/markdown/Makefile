@@ -1,4 +1,4 @@
-# markdown — build and lint for the wippy-wc-extras.markdown module
+# markdown — build and lint for the wippy-swiss.markdown module
 #
 # Output goes to ./public/ (embedded as fs.directory in _index.yaml).
 #

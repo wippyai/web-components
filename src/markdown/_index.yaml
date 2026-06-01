@@ -1,5 +1,5 @@
 version: "1.0"
-namespace: wippy-wc-extras.markdown
+namespace: wippy-swiss.markdown
 
 entries:
   - name: definition
@@ -17,14 +17,14 @@ entries:
         input; widen via `allowed-tags` / `allowed-attributes` only for
         trusted content.
 
-        Part of the wippy-wc-extras collection.
+        Part of the wippy-swiss collection.
 
   - name: server
     kind: ns.requirement
     meta:
       description: The http.service entry that hosts this module's static bundle — typically your app's gateway.
     targets:
-      - entry: wippy-wc-extras.markdown:static
+      - entry: wippy-swiss.markdown:static
         path: .meta.server
 
   - name: public_files
@@ -41,7 +41,7 @@ entries:
       server: server
     fs: public_files
     directory: /
-    path: /wippy-wc-extras/markdown
+    path: /@static-wippy-swiss/markdown
     options:
       mime_types:
         .js: application/javascript
@@ -59,7 +59,7 @@ entries:
       announced: true
       secure: false
       auto_register: true
-      url: /wippy-wc-extras/markdown
+      url: /@static-wippy-swiss/markdown
       description: |
         Renders GitHub-Flavored Markdown to safe HTML. Pass markdown source
         via the `content` attribute. Output is sanitized with sanitize-html

@@ -1,9 +1,9 @@
-organization: wippy-wc-extras
+organization: wippy-swiss
 module: mermaid
 description: >
   Provides the <wippy-mermaid> custom element for rendering Mermaid v11 diagrams.
   Supports all diagram types via a fast primary engine (flowchart, sequence, class,
-  ER, state, xychart) with a lazy-loaded fallback for the rest. Part of wippy-wc-extras.
+  ER, state, xychart) with a lazy-loaded fallback for the rest. Part of wippy-swiss.
 license: Apache-2.0
 repository: https://github.com/wippyai/web-components
 homepage: https://wippy.ai

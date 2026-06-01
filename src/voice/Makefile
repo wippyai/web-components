@@ -1,4 +1,4 @@
-# voice — build and lint for the wippy-wc-extras.voice module
+# voice — build and lint for the wippy-swiss.voice module
 #
 # Output goes to ./public/ (embedded as fs.directory in _index.yaml).
 #

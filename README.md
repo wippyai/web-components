@@ -2,13 +2,13 @@
 
 A collection of independently publishable Wippy web component modules. Each module ships a single auto-registered custom element — drop it into any app via `ns.dependency`, wire one `server` requirement to your gateway, and the tag is available on the next start.
 
-All modules are under the `wippy-wc-extras` organization and serve their static bundles under `/wippy-wc-extras/<name>/`.
+All modules are under the `wippy-swiss` organization and serve their static bundles under `/@static-wippy-swiss/<name>/`.
 
 ---
 
 ## Modules
 
-### `wippy-wc-extras/mermaid` — `<wippy-mermaid>`
+### `wippy-swiss/mermaid` — `<wippy-mermaid>`
 
 Renders any [Mermaid v11](https://mermaid.js.org/) diagram. A fast primary engine handles the common types; less-common types fall back to the full mermaid library loaded lazily on first use.
 
@@ -50,7 +50,7 @@ Renders any [Mermaid v11](https://mermaid.js.org/) diagram. A fast primary engin
 ```yaml
 - name: wc-mermaid
   kind: ns.dependency
-  component: wippy-wc-extras/mermaid
+  component: wippy-swiss/mermaid
   version: ">=v0.1.0"
   parameters:
     - name: server
@@ -59,7 +59,7 @@ Renders any [Mermaid v11](https://mermaid.js.org/) diagram. A fast primary engin
 
 ---
 
-### `wippy-wc-extras/markdown` — `<wippy-markdown>`
+### `wippy-swiss/markdown` — `<wippy-markdown>`
 
 Renders [GitHub-Flavored Markdown](https://github.github.com/gfm/) to safe HTML using [markdown-it](https://github.com/markdown-it/markdown-it) and [sanitize-html](https://github.com/apostrophecms/sanitize-html). The default allowlist is conservative and safe for arbitrary input.
 
@@ -97,7 +97,7 @@ This is **bold**, *italic*, and a [link](https://example.com)." />
 ```yaml
 - name: wc-markdown
   kind: ns.dependency
-  component: wippy-wc-extras/markdown
+  component: wippy-swiss/markdown
   version: ">=v0.1.0"
   parameters:
     - name: server
@@ -106,7 +106,7 @@ This is **bold**, *italic*, and a [link](https://example.com)." />
 
 ---
 
-### `wippy-wc-extras/chartjs` — `<wippy-chartjs>`
+### `wippy-swiss/chartjs` — `<wippy-chartjs>`
 
 Renders any [Chart.js v4](https://www.chartjs.org/) chart type from a single tag. All built-in registerables are pre-loaded. Dataset colors are auto-filled from the host's CSS palette (`--p-primary-500`, `--p-danger-500`, `--p-warn-500`, `--p-secondary-500`, `--p-accent-500`) when not specified.
 
@@ -154,7 +154,7 @@ Renders any [Chart.js v4](https://www.chartjs.org/) chart type from a single tag
 ```yaml
 - name: wc-chartjs
   kind: ns.dependency
-  component: wippy-wc-extras/chartjs
+  component: wippy-swiss/chartjs
   version: ">=v0.1.0"
   parameters:
     - name: server
@@ -163,7 +163,7 @@ Renders any [Chart.js v4](https://www.chartjs.org/) chart type from a single tag
 
 ---
 
-### `wippy-wc-extras/voice` — `<wippy-voice-orb>`
+### `wippy-swiss/voice` — `<wippy-voice-orb>`
 
 Animated voice input/output widget. Handles the full voice loop: speech-to-text, session management, and text-to-speech. Self-contained — no props required. Connects to the host app via the Wippy proxy.
 
@@ -189,7 +189,7 @@ Animated voice input/output widget. Handles the full voice loop: speech-to-text,
 ```yaml
 - name: wc-voice
   kind: ns.dependency
-  component: wippy-wc-extras/voice
+  component: wippy-swiss/voice
   version: ">=v0.1.0"
   parameters:
     - name: server
@@ -213,7 +213,7 @@ Each module is an independent `ns.dependency`. Declare them all and wire each to
 
 - name: wc-mermaid
   kind: ns.dependency
-  component: wippy-wc-extras/mermaid
+  component: wippy-swiss/mermaid
   version: ">=v0.1.0"
   parameters:
     - name: server
@@ -221,7 +221,7 @@ Each module is an independent `ns.dependency`. Declare them all and wire each to
 
 - name: wc-markdown
   kind: ns.dependency
-  component: wippy-wc-extras/markdown
+  component: wippy-swiss/markdown
   version: ">=v0.1.0"
   parameters:
     - name: server
@@ -229,7 +229,7 @@ Each module is an independent `ns.dependency`. Declare them all and wire each to
 
 - name: wc-chartjs
   kind: ns.dependency
-  component: wippy-wc-extras/chartjs
+  component: wippy-swiss/chartjs
   version: ">=v0.1.0"
   parameters:
     - name: server
@@ -248,13 +248,13 @@ Add replacements in your app's `wippy.lock` to use local source instead of the p
 
 ```yaml
 replacements:
-  - from: wippy-wc-extras/mermaid
+  - from: wippy-swiss/mermaid
     to: ../web-components/src/mermaid
-  - from: wippy-wc-extras/markdown
+  - from: wippy-swiss/markdown
     to: ../web-components/src/markdown
-  - from: wippy-wc-extras/chartjs
+  - from: wippy-swiss/chartjs
     to: ../web-components/src/chartjs
-  - from: wippy-wc-extras/voice
+  - from: wippy-swiss/voice
     to: ../web-components/src/voice
 ```
 
@@ -307,7 +307,7 @@ web-components/
 │   │   ├── wippy.lock       # Dependency lock
 │   │   ├── Makefile         # build / lint / clean for this module
 │   │   ├── frontend/        # Vue 3 + TypeScript source
-│   │   └── public/          # Built bundle (embedded, served at /wippy-wc-extras/mermaid/)
+│   │   └── public/          # Built bundle (embedded, served at /@static-wippy-swiss/mermaid/)
 │   ├── markdown/            # Same layout
 │   ├── chartjs/             # Same layout
 │   └── voice/               # Same layout + env/ sub-module + Lua backend files

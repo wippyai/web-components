@@ -1,5 +1,5 @@
 version: "1.0"
-namespace: wippy-wc-extras.mermaid
+namespace: wippy-swiss.mermaid
 
 entries:
   - name: definition
@@ -17,14 +17,14 @@ entries:
         (pie, gantt, mindmap, journey, gitGraph, timeline, sankey, …) fall
         back to the full mermaid library, loaded lazily on first use.
 
-        Part of the wippy-wc-extras collection.
+        Part of the wippy-swiss collection.
 
   - name: server
     kind: ns.requirement
     meta:
       description: The http.service entry that hosts this module's static bundle — typically your app's gateway.
     targets:
-      - entry: wippy-wc-extras.mermaid:static
+      - entry: wippy-swiss.mermaid:static
         path: .meta.server
 
   - name: public_files
@@ -41,7 +41,7 @@ entries:
       server: server
     fs: public_files
     directory: /
-    path: /wippy-wc-extras/mermaid
+    path: /@static-wippy-swiss/mermaid
     options:
       mime_types:
         .js: application/javascript
@@ -59,7 +59,7 @@ entries:
       announced: true
       secure: false
       auto_register: true
-      url: /wippy-wc-extras/mermaid
+      url: /@static-wippy-swiss/mermaid
       description: |
         Renders any Mermaid v11 diagram. Pass the diagram source via the
         `definition` attribute (NOT as text content). Supports flowchart,

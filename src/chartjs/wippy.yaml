@@ -1,9 +1,9 @@
-organization: wippy-wc-extras
+organization: wippy-swiss
 module: chartjs
 description: >
   Provides the <wippy-chartjs> custom element for rendering Chart.js v4 charts.
   Supports all built-in types (line, bar, doughnut, pie, radar, polarArea, scatter,
-  bubble). Auto-fills dataset colors from the host CSS palette. Part of wippy-wc-extras.
+  bubble). Auto-fills dataset colors from the host CSS palette. Part of wippy-swiss.
 license: Apache-2.0
 repository: https://github.com/wippyai/web-components
 homepage: https://wippy.ai

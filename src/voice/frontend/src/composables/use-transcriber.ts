@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import TranscriberWorker from '../workers/transcriber.worker.ts?worker'
 
 export function useTranscriber(model: string) {
   const loaded = ref(false)
@@ -10,7 +11,7 @@ export function useTranscriber(model: string) {
 
   function getWorker(): Worker {
     if (worker) return worker
-    worker = new Worker(new URL('../workers/transcriber.worker.ts', import.meta.url), { type: 'module' })
+    worker = new TranscriberWorker()
     worker.onmessage = (e: MessageEvent) => {
       const { type, id, message, text, progress: p } = e.data
       if (type === 'progress') { progress.value = p; return }

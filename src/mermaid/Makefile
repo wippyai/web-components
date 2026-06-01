@@ -1,4 +1,4 @@
-# mermaid — build and lint for the wippy-wc-extras.mermaid module
+# mermaid — build and lint for the wippy-swiss.mermaid module
 #
 # Output goes to ./public/ (embedded as fs.directory in _index.yaml).
 #

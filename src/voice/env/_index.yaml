@@ -1,5 +1,5 @@
 version: "1.0"
-namespace: wippy-wc-extras.voice.env
+namespace: wippy-swiss.voice.env
 entries:
   - name: envs
     kind: env.storage.os
@@ -13,7 +13,7 @@ entries:
       comment: TTS provider (deepgram or elevenlabs)
       icon: tabler:volume
     default: deepgram
-    storage: wippy-wc-extras.voice.env:envs
+    storage: wippy-swiss.voice.env:envs
     variable: TTS_PROVIDER
 
   - name: deepgram_api_key
@@ -22,7 +22,7 @@ entries:
       comment: Deepgram API key for TTS and STT
       icon: tabler:key
       private: true
-    storage: wippy-wc-extras.voice.env:envs
+    storage: wippy-swiss.voice.env:envs
     variable: DEEPGRAM_API_KEY
 
   - name: deepgram_model
@@ -31,7 +31,7 @@ entries:
       comment: Deepgram TTS voice model
       icon: tabler:settings
     default: aura-asteria-en
-    storage: wippy-wc-extras.voice.env:envs
+    storage: wippy-swiss.voice.env:envs
     variable: DEEPGRAM_MODEL
 
   - name: elevenlabs_api_key
@@ -40,7 +40,7 @@ entries:
       comment: ElevenLabs API key
       icon: tabler:key
       private: true
-    storage: wippy-wc-extras.voice.env:envs
+    storage: wippy-swiss.voice.env:envs
     variable: ELEVENLABS_API_KEY
 
   - name: elevenlabs_voice_id
@@ -48,7 +48,7 @@ entries:
     meta:
       comment: ElevenLabs voice ID
       icon: tabler:user
-    storage: wippy-wc-extras.voice.env:envs
+    storage: wippy-swiss.voice.env:envs
     variable: ELEVENLABS_VOICE_ID
 
   - name: elevenlabs_model_id
@@ -57,7 +57,7 @@ entries:
       comment: ElevenLabs model ID
       icon: tabler:settings
     default: eleven_flash_v2_5
-    storage: wippy-wc-extras.voice.env:envs
+    storage: wippy-swiss.voice.env:envs
     variable: ELEVENLABS_MODEL_ID
 
   - name: stt_provider
@@ -66,5 +66,5 @@ entries:
       comment: STT provider (deepgram or whisper)
       icon: tabler:microphone
     default: deepgram
-    storage: wippy-wc-extras.voice.env:envs
+    storage: wippy-swiss.voice.env:envs
     variable: STT_PROVIDER

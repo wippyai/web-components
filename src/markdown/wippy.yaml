@@ -1,9 +1,9 @@
-organization: wippy-wc-extras
+organization: wippy-swiss
 module: markdown
 description: >
   Provides the <wippy-markdown> custom element for rendering GitHub-Flavored Markdown
   to sanitized HTML. Uses markdown-it for parsing and sanitize-html for output safety.
-  Conservative default allowlist; widening is a security decision. Part of wippy-wc-extras.
+  Conservative default allowlist; widening is a security decision. Part of wippy-swiss.
 license: Apache-2.0
 repository: https://github.com/wippyai/web-components
 homepage: https://wippy.ai

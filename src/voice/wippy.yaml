@@ -1,9 +1,9 @@
-organization: wippy-wc-extras
+organization: wippy-swiss
 module: voice
 description: >
   Provides the <wippy-voice-orb> custom element — animated voice widget with STT
   (Deepgram / Whisper) and TTS (Deepgram / ElevenLabs). Includes backend API
-  endpoints for session management and TTS token provisioning. Part of wippy-wc-extras.
+  endpoints for session management and TTS token provisioning. Part of wippy-swiss.
 license: Apache-2.0
 repository: https://github.com/wippyai/web-components
 homepage: https://wippy.ai

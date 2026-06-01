@@ -14,8 +14,7 @@ export function createWhisperSTT(config: VoiceConfig = defaultConfig): STTProvid
     callbacks = cb
     stopped = false
 
-    const base = new URL(document.baseURI).origin
-    const voicePath = base + config.whisperBasePath
+    const voicePath = new URL('.', import.meta.url).href
     if (!asr.loaded.value)
       await asr.load(voicePath)
 
@@ -24,10 +23,11 @@ export function createWhisperSTT(config: VoiceConfig = defaultConfig): STTProvid
 
     const { MicVAD } = await import('@ricky0123/vad-web')
     vad = await MicVAD.new({
+      baseAssetPath: voicePath,
       workletURL: voicePath + 'vad.worklet.bundle.min.js',
-      modelURL: voicePath + 'silero_vad.onnx',
+      modelURL: voicePath + 'silero_vad_v5.onnx',
       ortConfig: (ort: any) => {
-        ort.env.wasm.wasmPaths = voicePath
+        ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.26.0/dist/'
         ort.env.wasm.numThreads = 1
         ort.env.wasm.proxy = false
       },

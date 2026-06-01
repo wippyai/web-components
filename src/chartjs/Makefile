@@ -1,4 +1,4 @@
-# chartjs — build and lint for the wippy-wc-extras.chartjs module
+# chartjs — build and lint for the wippy-swiss.chartjs module
 #
 # Output goes to ./public/ (embedded as fs.directory in _index.yaml).
 #

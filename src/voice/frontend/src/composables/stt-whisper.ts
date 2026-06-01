@@ -10,14 +10,13 @@ export function createWhisperSTT(config: VoiceConfig = defaultConfig): STTProvid
   let callbacks: STTCallbacks | null = null
   let stopped = false
 
-  async function start(cb: STTCallbacks): Promise<void> {
-    callbacks = cb
-    stopped = false
-
-    const voicePath = new URL('.', import.meta.url).href
-    if (!asr.loaded.value)
-      await asr.load(voicePath)
-
+  async function startVAD(voicePath: string) {
+    if (vad) {
+      try { vad.pause() } catch {}
+      try { vad.destroy() } catch {}
+      vad = null
+    }
+    audio.stop()
     await audio.listDevices()
     await audio.start()
 
@@ -31,6 +30,9 @@ export function createWhisperSTT(config: VoiceConfig = defaultConfig): STTProvid
         ort.env.wasm.numThreads = 1
         ort.env.wasm.proxy = false
       },
+      additionalAudioConstraints: audio.selectedDeviceId.value
+        ? { deviceId: { exact: audio.selectedDeviceId.value } }
+        : {},
       positiveSpeechThreshold: 0.7,
       negativeSpeechThreshold: 0.35,
       minSpeechFrames: 3,
@@ -59,6 +61,24 @@ export function createWhisperSTT(config: VoiceConfig = defaultConfig): STTProvid
     vad.start()
   }
 
+  async function start(cb: STTCallbacks): Promise<void> {
+    callbacks = cb
+    stopped = false
+    const voicePath = new URL('.', import.meta.url).href
+    if (!asr.loaded.value)
+      await asr.load(voicePath)
+    await startVAD(voicePath)
+  }
+
+  async function switchDevice(deviceId: string): Promise<void> {
+    audio.selectDevice(deviceId)
+    if (!stopped && vad) {
+      const voicePath = new URL('.', import.meta.url).href
+      await startVAD(voicePath)
+      if (!stopped) vad.start()
+    }
+  }
+
   function pause() {
     if (vad) vad.pause()
   }
@@ -84,9 +104,9 @@ export function createWhisperSTT(config: VoiceConfig = defaultConfig): STTProvid
   }
 
   return {
-    start, pause, resume, stop, dispose,
+    start, pause, resume, stop, dispose, switchDevice,
     get progress() { return asr.progress },
     get loaded() { return asr.loaded },
     get audio() { return audio },
-  } as STTProvider & { progress: typeof asr.progress, loaded: typeof asr.loaded, audio: typeof audio }
+  } as STTProvider & { progress: typeof asr.progress, loaded: typeof asr.loaded, audio: typeof audio, switchDevice: typeof switchDevice }
 }

@@ -87,13 +87,26 @@ async function toggleMicPicker() {
     showMicPicker.value = false
     return
   }
-  await sharedAudio.listDevices()
-  showMicPicker.value = true
+  // Use the STT's audio instance if active (already has device list), else enumerate via sharedAudio
+  const activeAudio = (stt as any)?.audio
+  if (activeAudio?.devices?.value?.length) {
+    showMicPicker.value = true
+  }
+  else {
+    await sharedAudio.listDevices()
+    showMicPicker.value = true
+  }
 }
 
 function pickMic(deviceId: string) {
-  sharedAudio.selectDevice(deviceId)
   showMicPicker.value = false
+  const activeAudio = (stt as any)?.audio
+  if (activeAudio && typeof (stt as any).switchDevice === 'function') {
+    ;(stt as any).switchDevice(deviceId)
+  }
+  else {
+    sharedAudio.selectDevice(deviceId)
+  }
 }
 
 // ---- composables ----
@@ -845,10 +858,10 @@ onUnmounted(() => {
         class="vo-mic-picker absolute bottom-20 right-0 w-[260px] p-1.5 z-[100] max-h-[200px] overflow-y-auto"
       >
         <div
-          v-for="d in sharedAudio.devices.value"
+          v-for="d in ((stt as any)?.audio?.devices?.value?.length ? (stt as any).audio.devices.value : sharedAudio.devices.value)"
           :key="d.id"
           class="vo-mic-item flex items-center gap-2 px-2.5 py-2 rounded-md text-[11px] cursor-pointer"
-          :class="{ active: sharedAudio.selectedDeviceId.value === d.id }"
+          :class="{ active: ((stt as any)?.audio?.selectedDeviceId?.value ?? sharedAudio.selectedDeviceId.value) === d.id }"
           @click="pickMic(d.id)"
         >
           <svg

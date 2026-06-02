@@ -4,6 +4,7 @@ namespace: wippy-swiss.mermaid
 entries:
   - name: definition
     kind: ns.definition
+    readme: file://README.md
     meta:
       title: Mermaid Diagram Web Component
       description: |

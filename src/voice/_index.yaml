@@ -5,6 +5,7 @@ entries:
   # ── Module Definition ──
   - name: definition
     kind: ns.definition
+    readme: file://README.md
     meta:
       title: Voice Orb Web Component
       description: |

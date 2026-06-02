@@ -4,6 +4,7 @@ namespace: wippy-swiss.chartjs
 entries:
   - name: definition
     kind: ns.definition
+    readme: file://README.md
     meta:
       title: Chart.js Web Component
       description: |

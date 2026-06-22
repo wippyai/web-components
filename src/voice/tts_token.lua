@@ -3,6 +3,7 @@ local json = require("json")
 local env = require("env")
 local security = require("security")
 local http_client = require("http_client")
+local api_error = require("api_error")
 
 local NS = "voice.env:"
 
@@ -82,8 +83,7 @@ local function handler()
 
     local tts, tts_err = get_tts_config()
     if not tts then
-        res:set_status(http.STATUS.INTERNAL_ERROR)
-        res:write_json({ success = false, error = tts_err })
+        api_error.fail(res, http.STATUS.INTERNAL_ERROR, tts_err, nil)
         return
     end
 

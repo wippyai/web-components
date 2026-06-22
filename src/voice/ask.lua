@@ -7,6 +7,7 @@ local security = require("security")
 local time = require("time")
 local logger = require("logger"):named("voice")
 local contract = require("contract")
+local api_error = require("api_error")
 
 local session = require("session")
 local context = require("context")
@@ -142,8 +143,7 @@ local function handler()
     )
 
     if not ok then
-        res:set_status(http.STATUS.INTERNAL_ERROR)
-        res:write_json({ success = false, error = "send failed: " .. tostring(send_err) })
+        api_error.fail(res, http.STATUS.INTERNAL_ERROR, "send failed", send_err)
         return
     end
 

@@ -65,6 +65,14 @@ entries:
         description: Given page context (page, params), returns the agent ID to use for this page
 
   # ── Libraries ──
+  - name: api_error
+    kind: library.lua
+    meta:
+      comment: Sanitized API error responses with server-side logging
+    source: file://api_error.lua
+    modules:
+      - logger
+
   - name: agents
     kind: library.lua
     source: file://agents.lua
@@ -92,6 +100,7 @@ entries:
     source: file://ask.lua
     method: handler
     imports:
+      api_error: wippy-swiss.voice:api_error
       session: wippy-swiss.voice:session
       context: wippy-swiss.voice:context
       agents: wippy-swiss.voice:agents
@@ -124,6 +133,8 @@ entries:
     kind: function.lua
     source: file://tts_token.lua
     method: handler
+    imports:
+      api_error: wippy-swiss.voice:api_error
     modules:
       - http
       - json

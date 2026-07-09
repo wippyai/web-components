@@ -5,6 +5,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## 0.1.0 (2026-07-09)
+
+
+### Features
+
+* **ci:** adopt release-please for automated releases ([#2](https://github.com/wippyai/web-components/issues/2)) ([e9dc1a3](https://github.com/wippyai/web-components/commit/e9dc1a3f6b0212427b3fa63c4d9bb10d7f977c6a))
+
 ## [Unreleased]
 
 ### Added

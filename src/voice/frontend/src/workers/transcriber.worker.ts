@@ -6,7 +6,7 @@ self.onmessage = async (e: MessageEvent) => {
   const { type, id } = e.data
 
   if (type === 'load') {
-    const { model, wasmPaths } = e.data
+    const { model, wasmPaths: _wasmPaths } = e.data
     try {
       const ort = await import('onnxruntime-web')
       ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.26.0/dist/'

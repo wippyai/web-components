@@ -102,7 +102,7 @@ function pickMic(deviceId: string) {
   showMicPicker.value = false
   const activeAudio = (stt as any)?.audio
   if (activeAudio && typeof (stt as any).switchDevice === 'function') {
-    ;(stt as any).switchDevice(deviceId)
+    (stt as any).switchDevice(deviceId)
   }
   else {
     sharedAudio.selectDevice(deviceId)

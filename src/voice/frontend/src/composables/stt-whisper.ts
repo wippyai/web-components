@@ -3,7 +3,7 @@ import { useTranscriber } from './use-transcriber'
 import { useAudio } from './use-audio'
 import { defaultConfig, type VoiceConfig } from './config'
 
-export function createWhisperSTT(config: VoiceConfig = defaultConfig): STTProvider {
+export function createWhisperSTT(_config: VoiceConfig = defaultConfig): STTProvider {
   const asr = useTranscriber('onnx-community/whisper-base')
   const audio = useAudio()
   let vad: any = null

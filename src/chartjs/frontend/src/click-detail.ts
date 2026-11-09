@@ -31,7 +31,8 @@ export function toClickDetail(
   const raw = dataset?.data?.[dataIndex]
   const category = data.labels?.[dataIndex]
   const rawX = raw !== null && typeof raw === 'object' ? (raw as { x?: unknown }).x : undefined
-  const label = category ?? rawX
+  // A point's own x wins over the shared labels array, so scatter, bubble and {x, y} data report their x.
+  const label = rawX ?? category
   return {
     label: label === undefined || label === null ? '' : String(label),
     datasetLabel: dataset?.label ?? '',

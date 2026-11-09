@@ -9559,7 +9559,7 @@ const fd = [
   datasets: [{ data: [300, 50, 100] }]
 });
 function xd(i, t, e) {
-  const s = i.datasets?.[t], n = s?.data?.[e], o = i.labels?.[e], r = n !== null && typeof n == "object" ? n.x : void 0, a = o ?? r;
+  const s = i.datasets?.[t], n = s?.data?.[e], o = i.labels?.[e], a = (n !== null && typeof n == "object" ? n.x : void 0) ?? o;
   return {
     label: a == null ? "" : String(a),
     datasetLabel: s?.label ?? "",

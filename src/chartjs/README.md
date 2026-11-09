@@ -18,6 +18,20 @@ Renders any [Chart.js v4](https://www.chartjs.org/) chart type from a single tag
 - Size the chart via its wrapper element — the canvas is responsive by default (e.g. `style="height:300px"`).
 - Escape inner quotes carefully when embedding JSON in HTML attributes.
 
+## Events
+
+| Event | Detail | When |
+|-------|--------|------|
+| `chart-click` | `{ label, datasetLabel, datasetIndex, dataIndex, value }` | The user clicks a data element (a bar, point or slice). A click outside any data element emits nothing. |
+
+The event bubbles and crosses the shadow root. `label` is the x label of the clicked element (the category label, or the x value for `scatter` and `bubble`). `value` is the raw data point: a number, or the point object for `scatter` and `bubble`.
+
+```js
+el.addEventListener('chart-click', (e) => {
+  const { label, datasetLabel, value } = e.detail
+})
+```
+
 ## Example
 
 ```html

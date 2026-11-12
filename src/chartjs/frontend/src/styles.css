@@ -4,6 +4,17 @@
  * (e.g. <div style="height:300px">). Chart.js owns canvas sizing via
  * its `responsive: true` default — we don't override canvas dimensions. */
 
+/* Pass the host's size down to the mount element, so that a host with a
+ * definite height gets a chart of that height, not the canvas default. */
+:host {
+  display: block;
+}
+
+:host > div {
+  width: 100%;
+  height: 100%;
+}
+
 .chartjs-container {
   position: relative;
   width: 100%;

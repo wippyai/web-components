@@ -64,6 +64,22 @@
         }
       }
     },
+    "events": {
+      "type": "object",
+      "properties": {
+        "chart-click": {
+          "type": "object",
+          "description": "Emitted when the user clicks a data element (a bar, point or slice). A click outside any data element emits nothing.",
+          "properties": {
+            "label": { "type": "string", "description": "X label of the clicked element (category label, or x value for scatter and bubble)" },
+            "datasetLabel": { "type": "string", "description": "Label of the clicked dataset" },
+            "datasetIndex": { "type": "number", "description": "Index of the clicked dataset" },
+            "dataIndex": { "type": "number", "description": "Index of the clicked data point within its dataset" },
+            "value": { "description": "Raw data point: a number, or an object for scatter and bubble" }
+          }
+        }
+      }
+    },
     "scripts": {
       "build": "build",
       "debug": "build:debug",

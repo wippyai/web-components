@@ -1,11 +1,13 @@
 import { useProps, useEvents, usePropsErrors } from '@wippy-fe/webcomponent-vue'
 import type { ComponentProps } from './types.ts'
+import type { ChartClickDetail } from './click-detail.ts'
 
 export interface Events {
   load: undefined
   unload: undefined
   error: { message: string, error: unknown }
   invalid: { message: string }
+  'chart-click': ChartClickDetail
 }
 
 export const useComponentProps = () => useProps<ComponentProps>()

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { Chart, registerables, type ChartConfiguration } from 'chart.js'
-import { DEFAULT_DATA, DEFAULT_TYPE, useComponentProps } from '../constants'
+import { DEFAULT_DATA, DEFAULT_TYPE, useComponentEvents, useComponentProps } from '../constants'
+import { toClickDetail } from '../click-detail'
 
 // Register every controller, scale, element, and built-in plugin so the
 // component can render any Chart.js v4 chart type without per-type setup.
@@ -12,6 +13,7 @@ if (!Chart.registry.controllers.get('bar'))
   Chart.register(...registerables)
 
 const props = useComponentProps()
+const emit = useComponentEvents()
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const buildErr = ref<string | null>(null)
@@ -139,6 +141,18 @@ function build() {
   }
 }
 
+// Chart.js hit test: only a click on a data element finds anything, so a click
+// on empty space emits nothing.
+function onCanvasClick(event: MouseEvent) {
+  if (!chart)
+    return
+  const hits = chart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true)
+  if (hits.length === 0)
+    return
+  const { datasetIndex, index } = hits[0]
+  emit('chart-click', toClickDetail(chart.data, datasetIndex, index))
+}
+
 function destroy() {
   chart?.destroy()
   chart = null
@@ -168,6 +182,7 @@ watch(config, () => {
       <canvas
         ref="canvasRef"
         role="img"
+        @click="onCanvasClick"
       />
     </div>
   </div>

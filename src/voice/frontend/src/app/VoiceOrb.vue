@@ -791,13 +791,13 @@ onUnmounted(() => {
     >
       <span class="vo-confirm-text flex-1 text-[11px] overflow-hidden text-ellipsis whitespace-nowrap">{{ pendingText }}</span>
       <button
-        class="vo-confirm-btn send text-[9px] px-2 py-0.5 rounded font-medium"
+        class="vo-confirm-btn send text-[9px] px-2 py-0.5 rounded-sm font-medium"
         @click="confirmSend"
       >
         Send
       </button>
       <button
-        class="vo-confirm-btn cancel text-[9px] px-2 py-0.5 rounded font-medium"
+        class="vo-confirm-btn cancel text-[9px] px-2 py-0.5 rounded-sm font-medium"
         @click="cancelSend"
       >
         X
@@ -812,7 +812,7 @@ onUnmounted(() => {
     >
       <input
         v-model="typedText"
-        class="vo-type-input flex-1 h-[22px] rounded-[5px] text-[10px] px-1.5 outline-none"
+        class="vo-type-input flex-1 h-[22px] rounded-[5px] text-[10px] px-1.5 outline-hidden"
         placeholder="Type a message..."
         :disabled="state === 'processing' || state === 'responding'"
       >
@@ -835,7 +835,7 @@ onUnmounted(() => {
 
       <button
         v-if="state !== 'idle'"
-        class="vo-mode-btn h-5 w-5 rounded text-[9px] font-semibold leading-none cursor-pointer flex items-center justify-center p-0 shrink-0 outline-none"
+        class="vo-mode-btn h-5 w-5 rounded-sm text-[9px] font-semibold leading-none cursor-pointer flex items-center justify-center p-0 shrink-0 outline-hidden"
         :class="{ active: tts.enabled.value }"
         title="Text-to-speech"
         @click="tts.toggle"
@@ -845,7 +845,7 @@ onUnmounted(() => {
 
       <button
         v-if="state !== 'idle'"
-        class="vo-mode-btn h-5 w-5 rounded text-[9px] font-semibold leading-none cursor-pointer flex items-center justify-center p-0 shrink-0 outline-none"
+        class="vo-mode-btn h-5 w-5 rounded-sm text-[9px] font-semibold leading-none cursor-pointer flex items-center justify-center p-0 shrink-0 outline-hidden"
         :class="{ active: confirmMode }"
         :title="confirmMode ? 'Confirm before send' : 'Auto-send'"
         @click="toggleConfirm"
@@ -878,7 +878,7 @@ onUnmounted(() => {
       </div>
 
       <button
-        class="vo-mode-btn h-5 w-5 rounded text-[9px] font-semibold leading-none cursor-pointer flex items-center justify-center p-0 shrink-0 outline-none"
+        class="vo-mode-btn h-5 w-5 rounded-sm text-[9px] font-semibold leading-none cursor-pointer flex items-center justify-center p-0 shrink-0 outline-hidden"
         :title="'Select microphone'"
         @click="toggleMicPicker"
       >

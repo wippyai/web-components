@@ -249,6 +249,9 @@
 
 .vo-type-input:disabled { opacity: 0.4; }
 
+/* Tailwind 4 preflight colours placeholders from the text colour; keep the muted tone. */
+.vo-type-input::placeholder { color: var(--p-text-muted-color, #9ca3af); }
+
 .vo-type-send {
   background: var(--p-primary-500, #6366f1);
   color: var(--p-primary-contrast-color, #fff);

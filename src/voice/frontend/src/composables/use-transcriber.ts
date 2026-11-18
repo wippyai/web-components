@@ -33,9 +33,9 @@ export function useTranscriber(model: string) {
     })
   }
 
-  async function load(wasmPaths: string): Promise<void> {
+  async function load(): Promise<void> {
     progress.value = 0
-    await send({ type: 'load', model, wasmPaths })
+    await send({ type: 'load', model })
     loaded.value = true
   }
 

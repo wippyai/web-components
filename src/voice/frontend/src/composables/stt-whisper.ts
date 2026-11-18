@@ -4,7 +4,11 @@ import { useAudio } from './use-audio'
 import { defaultConfig, type VoiceConfig } from './config'
 
 export function createWhisperSTT(_config: VoiceConfig = defaultConfig): STTProvider {
-  const asr = useTranscriber('onnx-community/whisper-base')
+  const locale = document.documentElement.lang || navigator.language
+  const model = locale.toLowerCase().startsWith('en')
+    ? 'onnx-community/whisper-base.en'
+    : 'onnx-community/whisper-base'
+  const asr = useTranscriber(model)
   const audio = useAudio()
   let vad: any = null
   let callbacks: STTCallbacks | null = null
@@ -21,24 +25,32 @@ export function createWhisperSTT(_config: VoiceConfig = defaultConfig): STTProvi
     await audio.start()
 
     const { MicVAD } = await import('@ricky0123/vad-web')
+    const microphoneConstraints = (): MediaStreamConstraints => ({
+      audio: {
+        channelCount: 1,
+        echoCancellation: true,
+        autoGainControl: true,
+        noiseSuppression: true,
+        ...(audio.selectedDeviceId.value ? { deviceId: { exact: audio.selectedDeviceId.value } } : {}),
+      },
+    })
     vad = await MicVAD.new({
       baseAssetPath: voicePath,
-      workletURL: voicePath + 'vad.worklet.bundle.min.js',
-      modelURL: voicePath + 'silero_vad_v5.onnx',
-      ortConfig: (ort: any) => {
-        ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.26.0/dist/'
+      model: 'v5',
+      ortConfig: (ort) => {
+        ort.env.wasm.wasmPaths = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ort.env.versions.web}/dist/`
         ort.env.wasm.numThreads = 1
         ort.env.wasm.proxy = false
       },
-      additionalAudioConstraints: audio.selectedDeviceId.value
-        ? { deviceId: { exact: audio.selectedDeviceId.value } }
-        : {},
+      getStream: () => audio.createStream(microphoneConstraints()),
+      pauseStream: async (stream: MediaStream) => stream.getTracks().forEach(track => track.stop()),
+      resumeStream: () => audio.createStream(microphoneConstraints()),
       positiveSpeechThreshold: 0.7,
       negativeSpeechThreshold: 0.35,
-      minSpeechFrames: 3,
-      preSpeechPadFrames: 8,
-      redemptionFrames: 12,
-      onSpeechStart: () => {
+      minSpeechMs: 300,
+      preSpeechPadMs: 800,
+      redemptionMs: 1200,
+      onSpeechRealStart: () => {
         if (!stopped && callbacks) callbacks.onSpeechStart()
       },
       onSpeechEnd: async (rawAudio: Float32Array) => {
@@ -64,16 +76,16 @@ export function createWhisperSTT(_config: VoiceConfig = defaultConfig): STTProvi
   async function start(cb: STTCallbacks): Promise<void> {
     callbacks = cb
     stopped = false
-    const voicePath = new URL('.', import.meta.url).href
+    const voicePath = new URL('./', import.meta.url).href
     if (!asr.loaded.value)
-      await asr.load(voicePath)
+      await asr.load()
     await startVAD(voicePath)
   }
 
   async function switchDevice(deviceId: string): Promise<void> {
     audio.selectDevice(deviceId)
     if (!stopped && vad) {
-      const voicePath = new URL('.', import.meta.url).href
+      const voicePath = new URL('./', import.meta.url).href
       await startVAD(voicePath)
       if (!stopped) vad.start()
     }

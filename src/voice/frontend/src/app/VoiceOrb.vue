@@ -1,14 +1,34 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom'
+import AudioLinesIcon from '~icons/lucide/audio-lines'
+import ChevronDownIcon from '~icons/lucide/chevron-down'
+import ChevronUpIcon from '~icons/lucide/chevron-up'
+import CircleCheckBigIcon from '~icons/lucide/circle-check-big'
+import FastForwardIcon from '~icons/lucide/fast-forward'
+import MicIcon from '~icons/lucide/mic'
+import SendIcon from '~icons/lucide/send'
+import SlidersHorizontalIcon from '~icons/lucide/sliders-horizontal'
+import Trash2Icon from '~icons/lucide/trash-2'
+import XIcon from '~icons/lucide/x'
+import { useProps } from '@wippy-fe/webcomponent-vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, useId, watch } from 'vue'
+import type { VoiceOrbProps } from '../voice-orb-props'
 import MarkdownIt from 'markdown-it'
 import { useAudio } from '../composables/use-audio'
 import { useOrb } from '../composables/use-orb'
 import { useTTSManager } from '../composables/tts-factory'
-import { useVoiceSession } from '../composables/voice-session'
+import {
+  type AttentionComposerDraftFile,
+  type AttentionComposerDraftRegistration,
+  type AttentionMessageContextApi,
+  useVoiceSession,
+} from '../composables/voice-session'
 import { usePageContext } from '../composables/page-context'
 import { useFeed } from '../composables/use-feed'
 import type { STTProvider, STTCallbacks } from '../composables/stt-types'
 import { defaultConfig } from '../composables/config'
+
+const props = useProps<VoiceOrbProps>()
 
 const md = new MarkdownIt({ html: false, linkify: true, breaks: true })
 function renderMd(text: string): string {
@@ -20,6 +40,43 @@ function renderMd(text: string): string {
 const orbRingRef = ref<SVGPathElement | null>(null)
 const orbFillRef = ref<SVGPathElement | null>(null)
 const feedEl = ref<HTMLElement | null>(null)
+const hintElement = ref<HTMLElement | null>(null)
+const componentId = useId()
+const feedId = `${componentId}-feed`
+const micPickerId = `${componentId}-microphones`
+const hintId = `${componentId}-hint`
+
+type HintKey = 'collapse' | 'clear' | 'tts' | 'send-mode' | 'microphone' | 'voice'
+const activeHintKey = ref<HintKey | null>(null)
+const hintTarget = ref<HTMLElement | null>(null)
+const hintPosition = ref({ x: 0, y: 0 })
+const hintPositioned = ref(false)
+let stopHintAutoUpdate: (() => void) | null = null
+
+const hintStyle = computed(() => ({
+  position: 'fixed' as const,
+  left: `${hintPosition.value.x}px`,
+  top: `${hintPosition.value.y}px`,
+  zIndex: '2147483647',
+  inlineSize: 'max-content',
+  maxInlineSize: 'min(18rem, calc(100vw - 1rem))',
+  padding: '0.375rem 0.5rem',
+  color: 'var(--p-text-color, #374151)',
+  background: 'var(--p-content-background, #fff)',
+  border: '1px solid var(--p-content-border-color, #e5e7eb)',
+  borderRadius: 'var(--p-content-border-radius, 0.5rem)',
+  boxShadow: 'var(--p-overlay-popover-shadow, 0 4px 14px rgba(0, 0, 0, 0.12))',
+  fontFamily: 'var(--p-font-family, inherit)',
+  fontSize: '0.75rem',
+  fontWeight: '500',
+  fontFeatureSettings: '"kern" 1',
+  lineHeight: '1.25',
+  textRendering: 'optimizeLegibility' as const,
+  textWrap: 'balance' as const,
+  whiteSpace: 'normal' as const,
+  pointerEvents: 'none' as const,
+  visibility: hintPositioned.value ? 'visible' as const : 'hidden' as const,
+}))
 
 // ---- state machine ----
 
@@ -77,6 +134,85 @@ const feedCollapsed = ref(localStorage.getItem('voice-orb:collapsed') === 'true'
 const showMicPicker = ref(false)
 const feed = useFeed(feedEl)
 
+const voiceHint = computed(() => {
+  if (state.value === 'idle' || state.value === 'error')
+    return 'Start voice input'
+  if (state.value === 'speaking')
+    return 'Stop speech playback'
+  return 'Stop voice input'
+})
+
+const hintText = computed(() => {
+  switch (activeHintKey.value) {
+    case 'collapse': return 'Collapse conversation'
+    case 'clear': return 'Clear conversation'
+    case 'tts': return tts.enabled.value ? 'Read replies aloud' : 'Do not read replies aloud'
+    case 'send-mode': return confirmMode.value ? 'Confirm before sending' : 'Send automatically'
+    case 'microphone': return 'Choose microphone'
+    case 'voice': return voiceHint.value
+    default: return ''
+  }
+})
+
+async function updateHintPosition(target: HTMLElement) {
+  const hint = hintElement.value
+  if (!hint || hintTarget.value !== target)
+    return
+
+  const { x, y } = await computePosition(target, hint, {
+    placement: 'top',
+    strategy: 'fixed',
+    middleware: [
+      offset(8),
+      flip(),
+      shift({ padding: 8 }),
+    ],
+  })
+
+  if (hintTarget.value !== target)
+    return
+
+  hintPosition.value = { x, y }
+  hintPositioned.value = true
+}
+
+async function showHint(event: Event, key: HintKey) {
+  const target = event.currentTarget
+  if (!(target instanceof HTMLElement))
+    return
+
+  stopHintAutoUpdate?.()
+  stopHintAutoUpdate = null
+  hintTarget.value = target
+  activeHintKey.value = key
+  hintPositioned.value = false
+  await nextTick()
+
+  const hint = hintElement.value
+  if (!hint || hintTarget.value !== target)
+    return
+
+  await updateHintPosition(target)
+  stopHintAutoUpdate = autoUpdate(target, hint, () => {
+    void updateHintPosition(target)
+  })
+}
+
+function hideHint(key?: HintKey) {
+  if (key && activeHintKey.value !== key)
+    return
+
+  stopHintAutoUpdate?.()
+  stopHintAutoUpdate = null
+  hintTarget.value = null
+  hintPositioned.value = false
+  activeHintKey.value = null
+}
+
+function hintDescription(key: HintKey): string | undefined {
+  return activeHintKey.value === key ? hintId : undefined
+}
+
 function toggleFeedCollapsed() {
   feedCollapsed.value = !feedCollapsed.value
   localStorage.setItem('voice-orb:collapsed', String(feedCollapsed.value))
@@ -117,6 +253,34 @@ const orb = useOrb(orbRingRef, orbFillRef, () => sharedAudio.getAmplitude())
 const tts = useTTSManager()
 const voiceSession = useVoiceSession()
 const pageCtx = usePageContext(currentPath)
+const composerDrafts = ref<AttentionComposerDraftFile[]>([])
+let composerDraftRegistration: AttentionComposerDraftRegistration | null = null
+
+function hasReadyComposerDraft(files = composerDrafts.value): boolean {
+  return files.some(file => file.status === 'ready' && file.uuid)
+}
+
+function updateComposerDrafts(files: AttentionComposerDraftFile[]) {
+  const hadReadyDraft = hasReadyComposerDraft()
+  composerDrafts.value = files
+  const hasReadyDraft = hasReadyComposerDraft(files)
+  if (hasReadyDraft)
+    stt?.pause()
+  else if (hadReadyDraft && state.value === 'listening')
+    stt?.resume()
+}
+
+watch(voiceSession.sessionId, sessionId => composerDraftRegistration?.update(sessionId || undefined, true), { flush: 'sync' })
+
+async function removeComposerDraft(id: string) {
+  await composerDraftRegistration?.remove(id)
+}
+
+function formatDraftSize(bytes: number): string {
+  if (bytes < 1024)
+    return `${bytes} B`
+  return `${(bytes / 1024).toFixed(1)} KB`
+}
 
 // ---- providers ----
 
@@ -236,10 +400,12 @@ function clearFeed() { feed.clear() }
 // ---- typing fallback ----
 
 const typedText = ref('')
+const typedFormRef = ref<HTMLFormElement | null>(null)
+const typedInputRef = ref<HTMLInputElement | null>(null)
 
 function sendTyped() {
   const text = typedText.value.trim()
-  if (!text || !isActive()) return
+  if (!text || state.value === 'idle') return
   const s = state.value
   if (s === 'processing' || s === 'responding' || s === 'speaking') return
   typedText.value = ''
@@ -256,8 +422,14 @@ function goListening() {
   transition('listening')
   statusText.value = ''
   if (stt) {
-    console.debug('voice:stt-resume')
-    stt.resume()
+    if (hasReadyComposerDraft()) {
+      console.debug('voice:stt-paused-for-draft-review')
+      stt.pause()
+    }
+    else {
+      console.debug('voice:stt-resume')
+      stt.resume()
+    }
   }
 }
 
@@ -309,12 +481,30 @@ function startSpeakingTimeout() {
 
 // ---- agent ----
 
+async function resolveAgentStartToken(agentName: string) {
+  if (!api) return
+  try {
+    const { data } = await api.get(defaultConfig.endpoints.agentsList)
+    const candidate = data?.agents?.find((item: { name?: string; start_token?: string }) => item.name === agentName)
+    if (!candidate?.start_token) throw new Error('Agent has no start token')
+    if (props.value.agentName !== agentName) return
+    voiceSession.clearSession()
+    voiceSession.setStartToken(candidate.start_token)
+  } catch (e: any) {
+    console.error('Voice agent resolution failed:', e?.message || e)
+  }
+}
+
+watch(() => props.value.agentName, (agentName) => {
+  if (agentName && api) void resolveAgentStartToken(agentName)
+}, { immediate: true })
+
 async function initVoice() {
   if (!api) return
   try {
     const { data } = await api.get(defaultConfig.endpoints.pageMap)
     if (data.success) {
-      if (data.start_token) voiceSession.setStartToken(data.start_token)
+      if (data.start_token && !props.value.agentName) voiceSession.setStartToken(data.start_token)
       if (data.pages) pageCtx.pageMap.value = data.pages
     }
   } catch (e: any) {
@@ -389,8 +579,20 @@ const sttCallbacks: STTCallbacks = {
 
 // ---- send to agent ----
 
+function attentionContextEnabledAtSend(): boolean {
+  if (voiceSession.attentionContext.value)
+    return voiceSession.attentionContext.value.enabled
+  const propEnabled = props.value.attentionContextEnabled === true
+  const root = typedFormRef.value?.getRootNode()
+  const rootHasHost = Boolean(root && 'host' in root)
+  const host = rootHasHost ? (root as ShadowRoot).host : null
+  const attrPresent = host instanceof HTMLElement && host.hasAttribute('attention-context-enabled')
+  const attrExplicitFalse = host instanceof HTMLElement && host.getAttribute('attention-context-enabled') === 'false'
+  return propEnabled || (attrPresent && !attrExplicitFalse)
+}
+
 async function sendToAgent(text: string) {
-  if (!isActive()) return
+  if (state.value === 'idle') return
 
   currentFeedId = null
   sessionRunning = false
@@ -404,7 +606,13 @@ async function sendToAgent(text: string) {
   startResponseTimeout()
 
   try {
-    const result = await voiceSession.send(text, pageCtx.current.value)
+    const readyFileUuids = composerDrafts.value
+      .filter(file => file.status === 'ready' && file.uuid)
+      .map(file => file.uuid!)
+    const result = await voiceSession.send(text, pageCtx.current.value, attentionContextEnabledAtSend(), readyFileUuids)
+
+    if (result.success && readyFileUuids.length > 0)
+      composerDraftRegistration?.commit(readyFileUuids)
 
     if (!result.success) {
       clearResponseTimeout()
@@ -445,7 +653,7 @@ function handleWsMessage(msg: any) {
   const data = msg.data
 
   if (topic === 'session.opened' && data?.session_id)
-    voiceSession.onSessionOpened(data.session_id)
+    voiceSession.onSessionOpened(data.session_id, data.request_id)
 
   if (data?.success === false && data?.message && currentFeedId) {
     clearResponseTimeout()
@@ -532,6 +740,9 @@ function handleWsMessage(msg: any) {
   }
 
   if (topic.startsWith('session:') && !topic.includes(':message:')) {
+    const sessionId = topic.slice('session:'.length)
+    if (data?.attention_context)
+      voiceSession.onAttentionContextUpdated(sessionId, data.attention_context)
     if (data?.type === 'error' && data?.message && currentFeedId) {
       clearResponseTimeout()
       updateFeed(currentFeedId, data.message, false)
@@ -593,7 +804,9 @@ watch(tts.speaking, (isSpeaking, wasSpeaking) => {
 
 // ---- start / stop ----
 
-async function toggle() {
+async function toggle(event?: MouseEvent) {
+  const focusTypedInput = event?.detail === 0
+
   if (state.value === 'speaking') {
     tts.stop()
     clearSpeakingTimeout()
@@ -604,12 +817,16 @@ async function toggle() {
   }
   else {
     await start()
+    if (focusTypedInput && state.value !== 'idle') {
+      await nextTick()
+      typedInputRef.value?.focus()
+    }
   }
 }
 
 async function start() {
   transition('loading')
-  statusText.value = 'loading...'
+  statusText.value = 'loading…'
 
   try {
     let sttProvider: 'whisper' | 'deepgram' = 'whisper'
@@ -701,6 +918,15 @@ onMounted(async () => {
     api = proxy.api
     tts.setApi(api)
     voiceSession.setApi(api)
+    const attention = (proxy as { attention?: AttentionMessageContextApi }).attention || null
+    voiceSession.setAttention(attention)
+    composerDraftRegistration?.dispose()
+    composerDraftRegistration = attention?.registerComposerDrafts?.({
+      sessionId: voiceSession.sessionId.value || undefined,
+      visible: true,
+      onChange: updateComposerDrafts,
+    }) || null
+    if (props.value.agentName) await resolveAgentStartToken(props.value.agentName)
     onSub = proxy.on('@message', handleWsMessage) as any
     onHistorySub = proxy.on('@history', (e: any) => {
       if (e?.path) currentPath.value = e.path
@@ -712,17 +938,25 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  stopHintAutoUpdate?.()
+  stopHintAutoUpdate = null
   stop()
+  composerDraftRegistration?.dispose()
+  composerDraftRegistration = null
   if (onSub) { onSub(); onSub = null }
   if (onHistorySub) { onHistorySub(); onHistorySub = null }
 })
 </script>
 
 <template>
-  <div class="flex flex-col items-end gap-1">
+  <div
+    data-wippy-attention="exclude"
+    class="vo-overlay flex flex-col items-end gap-1"
+  >
     <!-- feed -->
     <div
       v-if="feed.items.value.length && !feedCollapsed"
+      :id="feedId"
       ref="feedEl"
       class="vo-feed relative overflow-y-auto flex flex-col gap-1 px-2 pt-3.5 pb-2"
       :style="{ width: feedWidth + 'px', maxHeight: feedHeight + 'px' }"
@@ -733,16 +967,38 @@ onUnmounted(() => {
       />
       <div class="vo-feed-actions absolute top-0.5 right-1 flex gap-0.5">
         <button
-          title="Collapse"
+          type="button"
+          aria-label="Collapse conversation"
+          aria-expanded="true"
+          :aria-controls="feedId"
+          :aria-describedby="hintDescription('collapse')"
+          @mouseenter="showHint($event, 'collapse')"
+          @mouseleave="hideHint('collapse')"
+          @focus="showHint($event, 'collapse')"
+          @blur="hideHint('collapse')"
+          @keydown.esc="hideHint('collapse')"
           @click="toggleFeedCollapsed"
         >
-          &#x2500;
+          <ChevronDownIcon
+            class="vo-control-icon"
+            aria-hidden="true"
+          />
         </button>
         <button
-          title="Clear"
+          type="button"
+          aria-label="Clear conversation"
+          :aria-describedby="hintDescription('clear')"
+          @mouseenter="showHint($event, 'clear')"
+          @mouseleave="hideHint('clear')"
+          @focus="showHint($event, 'clear')"
+          @blur="hideHint('clear')"
+          @keydown.esc="hideHint('clear')"
           @click="clearFeed"
         >
-          &#x2715;
+          <Trash2Icon
+            class="vo-control-icon"
+            aria-hidden="true"
+          />
         </button>
       </div>
       <div
@@ -775,13 +1031,20 @@ onUnmounted(() => {
     <!-- collapsed feed indicator -->
     <button
       v-else-if="feed.items.value.length && feedCollapsed"
+      type="button"
       class="vo-feed-collapsed flex items-center gap-1.5 px-2.5 py-1 rounded-lg cursor-pointer max-w-[300px]"
       :class="{ 'vo-feed-pulse': feed.items.value.some(f => f.streaming) }"
-      :title="feed.items.value.length + ' messages — click to expand'"
+      :aria-label="`Expand conversation with ${feed.items.value.length} messages`"
+      aria-expanded="false"
+      :aria-controls="feedId"
       @click="toggleFeedCollapsed"
     >
       <span class="vo-feed-collapsed-count text-[9px] font-semibold px-[5px] py-px rounded-[3px] shrink-0">{{ feed.items.value.length }}</span>
-      <span class="vo-feed-collapsed-preview text-[10px] overflow-hidden text-ellipsis whitespace-nowrap">{{ feed.items.value[feed.items.value.length - 1]?.text.substring(0, 40) }}{{ (feed.items.value[feed.items.value.length - 1]?.text.length || 0) > 40 ? '...' : '' }}</span>
+      <span class="vo-feed-collapsed-preview text-[10px] overflow-hidden text-ellipsis whitespace-nowrap">{{ feed.items.value[feed.items.value.length - 1]?.text.substring(0, 40) }}{{ (feed.items.value[feed.items.value.length - 1]?.text.length || 0) > 40 ? '…' : '' }}</span>
+      <ChevronUpIcon
+        class="vo-control-icon shrink-0"
+        aria-hidden="true"
+      />
     </button>
 
     <!-- confirm bar -->
@@ -791,37 +1054,78 @@ onUnmounted(() => {
     >
       <span class="vo-confirm-text flex-1 text-[11px] overflow-hidden text-ellipsis whitespace-nowrap">{{ pendingText }}</span>
       <button
+        type="button"
         class="vo-confirm-btn send text-[9px] px-2 py-0.5 rounded-sm font-medium"
         @click="confirmSend"
       >
         Send
       </button>
       <button
+        type="button"
         class="vo-confirm-btn cancel text-[9px] px-2 py-0.5 rounded-sm font-medium"
+        aria-label="Cancel message"
         @click="cancelSend"
       >
-        X
+        <XIcon
+          class="vo-control-icon"
+          aria-hidden="true"
+        />
       </button>
+    </div>
+
+    <!-- prepared composer files -->
+    <div
+      v-if="composerDrafts.length"
+      class="vo-drafts flex flex-col gap-1 max-w-[300px]"
+      data-wippy-attention="exclude"
+    >
+      <div
+        v-for="file in composerDrafts"
+        :key="file.id"
+        class="vo-draft flex items-center gap-1.5 rounded-lg px-2 py-1 text-[10px]"
+      >
+        <span class="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+          {{ file.filename }} · {{ file.mime_type }} · {{ formatDraftSize(file.size) }} · {{ file.status }}
+        </span>
+        <button
+          type="button"
+          class="vo-draft-remove border-0 bg-transparent cursor-pointer p-0 text-[11px]"
+          :aria-label="`Remove ${file.filename}`"
+          @click="removeComposerDraft(file.id)"
+        >
+          <XIcon
+            class="vo-control-icon"
+            aria-hidden="true"
+          />
+        </button>
+      </div>
     </div>
 
     <!-- typing fallback -->
     <form
-      v-if="isActive() && !pendingText"
+      v-if="state !== 'idle' && !pendingText"
+      ref="typedFormRef"
       class="vo-type flex items-center gap-[3px] max-w-[300px]"
       @submit.prevent="sendTyped"
     >
       <input
+        ref="typedInputRef"
         v-model="typedText"
         class="vo-type-input flex-1 h-[22px] rounded-[5px] text-[10px] px-1.5 outline-hidden"
-        placeholder="Type a message..."
+        placeholder="Type a message…"
         :disabled="state === 'processing' || state === 'responding'"
       >
       <button
         type="submit"
         class="vo-type-send w-[22px] h-[22px] rounded-[5px] border-0 text-[11px] font-semibold cursor-pointer flex items-center justify-center p-0 shrink-0"
         :disabled="!typedText.trim()"
+        aria-label="Send typed message"
+        @click.prevent="sendTyped"
       >
-        &#x2191;
+        <SendIcon
+          class="vo-control-icon"
+          aria-hidden="true"
+        />
       </button>
     </form>
 
@@ -835,54 +1139,95 @@ onUnmounted(() => {
 
       <button
         v-if="state !== 'idle'"
+        type="button"
         class="vo-mode-btn h-5 w-5 rounded-sm text-[9px] font-semibold leading-none cursor-pointer flex items-center justify-center p-0 shrink-0 outline-hidden"
         :class="{ active: tts.enabled.value }"
-        title="Text-to-speech"
+        aria-label="Read replies aloud"
+        :aria-pressed="tts.enabled.value"
+        :aria-describedby="hintDescription('tts')"
+        @mouseenter="showHint($event, 'tts')"
+        @mouseleave="hideHint('tts')"
+        @focus="showHint($event, 'tts')"
+        @blur="hideHint('tts')"
+        @keydown.esc="hideHint('tts')"
         @click="tts.toggle"
       >
-        S
+        <AudioLinesIcon
+          class="vo-control-icon"
+          aria-hidden="true"
+        />
       </button>
 
       <button
         v-if="state !== 'idle'"
+        type="button"
         class="vo-mode-btn h-5 w-5 rounded-sm text-[9px] font-semibold leading-none cursor-pointer flex items-center justify-center p-0 shrink-0 outline-hidden"
         :class="{ active: confirmMode }"
-        :title="confirmMode ? 'Confirm before send' : 'Auto-send'"
+        aria-label="Confirm before sending"
+        :aria-pressed="confirmMode"
+        :aria-describedby="hintDescription('send-mode')"
+        @mouseenter="showHint($event, 'send-mode')"
+        @mouseleave="hideHint('send-mode')"
+        @focus="showHint($event, 'send-mode')"
+        @blur="hideHint('send-mode')"
+        @keydown.esc="hideHint('send-mode')"
         @click="toggleConfirm"
       >
-        {{ confirmMode ? 'C' : 'A' }}
+        <CircleCheckBigIcon
+          v-if="confirmMode"
+          class="vo-control-icon"
+          aria-hidden="true"
+        />
+        <FastForwardIcon
+          v-else
+          class="vo-control-icon"
+          aria-hidden="true"
+        />
       </button>
 
       <div
         v-if="showMicPicker"
+        :id="micPickerId"
+        role="listbox"
+        aria-label="Microphones"
         class="vo-mic-picker absolute bottom-20 right-0 w-[260px] p-1.5 z-[100] max-h-[200px] overflow-y-auto"
       >
-        <div
+        <button
           v-for="d in ((stt as any)?.audio?.devices?.value?.length ? (stt as any).audio.devices.value : sharedAudio.devices.value)"
           :key="d.id"
+          type="button"
+          role="option"
           class="vo-mic-item flex items-center gap-2 px-2.5 py-2 rounded-md text-[11px] cursor-pointer"
           :class="{ active: ((stt as any)?.audio?.selectedDeviceId?.value ?? sharedAudio.selectedDeviceId.value) === d.id }"
+          :aria-selected="((stt as any)?.audio?.selectedDeviceId?.value ?? sharedAudio.selectedDeviceId.value) === d.id"
           @click="pickMic(d.id)"
         >
-          <svg
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            width="12"
-            height="12"
-            class="vo-mic-icon shrink-0 opacity-50"
-          >
-            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-          </svg>
+          <MicIcon
+            class="vo-control-icon vo-mic-icon shrink-0 opacity-50"
+            aria-hidden="true"
+          />
           <span>{{ d.label }}</span>
-        </div>
+        </button>
       </div>
 
       <button
+        type="button"
         class="vo-mode-btn h-5 w-5 rounded-sm text-[9px] font-semibold leading-none cursor-pointer flex items-center justify-center p-0 shrink-0 outline-hidden"
-        :title="'Select microphone'"
+        aria-label="Choose microphone"
+        :aria-expanded="showMicPicker"
+        :aria-controls="micPickerId"
+        :aria-describedby="hintDescription('microphone')"
+        @mouseenter="showHint($event, 'microphone')"
+        @mouseleave="hideHint('microphone')"
+        @focus="showHint($event, 'microphone')"
+        @blur="hideHint('microphone')"
+        @keydown.esc="hideHint('microphone')"
         @click="toggleMicPicker"
       >
-        M
+        <SlidersHorizontalIcon
+          class="vo-control-icon"
+          aria-hidden="true"
+        />
       </button>
 
       <div class="relative w-[72px] h-[72px] shrink-0">
@@ -914,18 +1259,24 @@ onUnmounted(() => {
           />
         </svg>
         <button
+          type="button"
           class="vo-btn absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full cursor-pointer p-0 flex items-center justify-center transition-all duration-200"
           :class="state"
+          :aria-label="voiceHint"
+          :aria-pressed="isActive()"
+          :aria-describedby="hintDescription('voice')"
           style="z-index:2"
+          @mouseenter="showHint($event, 'voice')"
+          @mouseleave="hideHint('voice')"
+          @focus="showHint($event, 'voice')"
+          @blur="hideHint('voice')"
+          @keydown.esc="hideHint('voice')"
           @click="toggle"
         >
-          <svg
-            viewBox="0 0 24 24"
-            fill="currentColor"
+          <MicIcon
             class="w-3.5 h-3.5"
-          >
-            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6 6c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-          </svg>
+            aria-hidden="true"
+          />
         </button>
         <svg
           viewBox="0 0 160 160"
@@ -941,6 +1292,19 @@ onUnmounted(() => {
         </svg>
       </div>
     </div>
+
+    <Teleport to="body">
+      <div
+        v-if="activeHintKey"
+        :id="hintId"
+        ref="hintElement"
+        role="tooltip"
+        class="vo-hint-text"
+        data-wippy-attention="exclude"
+        :style="hintStyle"
+      >
+        {{ hintText }}
+      </div>
+    </Teleport>
   </div>
 </template>
-

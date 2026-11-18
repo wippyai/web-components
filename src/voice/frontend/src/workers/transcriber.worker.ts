@@ -1,4 +1,4 @@
-import { pipeline } from '@huggingface/transformers'
+import { env, pipeline } from '@huggingface/transformers'
 
 let asr: any = null
 
@@ -6,13 +6,13 @@ self.onmessage = async (e: MessageEvent) => {
   const { type, id } = e.data
 
   if (type === 'load') {
-    const { model, wasmPaths: _wasmPaths } = e.data
+    const { model } = e.data
     try {
-      const ort = await import('onnxruntime-web')
-      ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.26.0/dist/'
-      ort.env.wasm.numThreads = 1
-      ort.env.wasm.simd = true
-      ort.env.wasm.proxy = false
+      const wasm = env.backends.onnx.wasm
+      if (wasm) {
+        wasm.numThreads = 1
+        wasm.proxy = false
+      }
       asr = await pipeline('automatic-speech-recognition', model, {
         dtype: 'fp32',
         device: 'wasm',

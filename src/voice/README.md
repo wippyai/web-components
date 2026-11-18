@@ -1,6 +1,6 @@
 # wippy-swiss/voice — `<wippy-voice-orb>`
 
-Animated voice input/output widget. Handles the full voice loop: speech-to-text, session management, and text-to-speech. Self-contained — no props required. Connects to the host app via the Wippy proxy.
+The Voice Orb uses the Wippy proxy for speech-to-text, session management, and playback.
 
 **STT providers:** `deepgram` (default, cloud, low latency) · `whisper` (local WASM, offline-capable)
 
@@ -8,7 +8,10 @@ Animated voice input/output widget. Handles the full voice loop: speech-to-text,
 
 ## Props
 
-None — the component is fully self-contained and driven by the proxy session context.
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `attention-context-enabled` | boolean | `false` | Includes Attention context with voice and typed messages when the host provides it. |
+| `agent-name` | string | | Registry ID of the voice agent. The backend uses the page-to-agent mapping when no override is supplied. |
 
 ## Backend requirements
 

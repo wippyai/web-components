@@ -7,6 +7,22 @@ export interface MicDevice {
   label: string
 }
 
+function resolveMediaDevices(): MediaDevices {
+  try {
+    if (window.location.origin === 'null' && window.parent !== window) {
+      const parentMediaDevices = window.parent.navigator.mediaDevices
+      if (parentMediaDevices)
+        return parentMediaDevices
+    }
+  }
+  catch {
+    // Cross-origin parents are not a usable direct capture provider.
+  }
+  if (!navigator.mediaDevices)
+    throw new Error('Microphone capture is unavailable in this document')
+  return navigator.mediaDevices
+}
+
 export function useAudio() {
   const devices = ref<MicDevice[]>([])
   const selectedDeviceId = ref(localStorage.getItem(MIC_KEY) || '')
@@ -16,9 +32,14 @@ export function useAudio() {
   let analyser: AnalyserNode | null = null
   let freqBuf: Uint8Array | null = null
 
+  async function createStream(constraints: MediaStreamConstraints = { audio: true }) {
+    return resolveMediaDevices().getUserMedia(constraints)
+  }
+
   async function listDevices() {
-    const tmp = await navigator.mediaDevices.getUserMedia({ audio: true })
-    const all = await navigator.mediaDevices.enumerateDevices()
+    const mediaDevices = resolveMediaDevices()
+    const tmp = await createStream({ audio: true })
+    const all = await mediaDevices.enumerateDevices()
     tmp.getTracks().forEach(t => t.stop())
 
     devices.value = all
@@ -26,7 +47,9 @@ export function useAudio() {
       .map(d => ({ id: d.deviceId, label: d.label || `Mic ${d.deviceId.slice(0, 8)}` }))
 
     if (!selectedDeviceId.value || !devices.value.some(d => d.id === selectedDeviceId.value)) {
-      if (devices.value.length > 0) selectedDeviceId.value = devices.value[0].id
+      const defaultDevice = devices.value.find(device => device.id === 'default') ?? devices.value[0]
+      if (defaultDevice)
+        selectedDeviceId.value = defaultDevice.id
     }
   }
 
@@ -36,6 +59,7 @@ export function useAudio() {
   }
 
   async function start() {
+    stop()
     const constraints: MediaStreamConstraints = {
       audio: {
         channelCount: 1,
@@ -44,13 +68,14 @@ export function useAudio() {
         ...(selectedDeviceId.value ? { deviceId: { exact: selectedDeviceId.value } } : {}),
       },
     }
-    stream = await navigator.mediaDevices.getUserMedia(constraints)
+    stream = await createStream(constraints)
     ctx = new AudioContext()
     analyser = ctx.createAnalyser()
     analyser.fftSize = 1024
     analyser.smoothingTimeConstant = 0.75
     freqBuf = new Uint8Array(analyser.frequencyBinCount)
     ctx.createMediaStreamSource(stream).connect(analyser)
+    return stream
   }
 
   // Returns normalized amplitude 0-1 focused on speech frequencies (~200-3000 Hz)
@@ -71,5 +96,5 @@ export function useAudio() {
     analyser = null; freqBuf = null
   }
 
-  return { devices, selectedDeviceId, listDevices, selectDevice, start, getAmplitude, stop }
+  return { devices, selectedDeviceId, createStream, listDevices, selectDevice, start, getAmplitude, stop }
 }

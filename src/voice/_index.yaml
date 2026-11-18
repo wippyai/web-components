@@ -136,18 +136,24 @@ entries:
   # ── HTTP Endpoints ──
   - name: ask.endpoint
     kind: http.endpoint
+    meta:
+      router: router
     method: POST
     func: ask
     path: /voice/ask
 
   - name: pages.endpoint
     kind: http.endpoint
+    meta:
+      router: router
     method: GET
     func: pages
     path: /voice/pages
 
   - name: tts_token.endpoint
     kind: http.endpoint
+    meta:
+      router: router
     method: POST
     func: tts_token
     path: /voice/tts-token
@@ -188,7 +194,7 @@ entries:
       auto_register: true
       url: /@static-wippy-swiss/voice
       description: |
-        Animated voice input/output widget. Self-contained — no props required.
+        Animated voice input/output widget with optional Attention context and agent selection.
         Connects to the host app via the Wippy proxy to handle voice sessions,
         speech-to-text (Deepgram / Whisper), and text-to-speech
         (Deepgram / ElevenLabs). Requires the wippy-swiss/voice backend
@@ -200,4 +206,11 @@ entries:
         <wippy-voice-orb />
     props:
       type: object
-      properties: {}
+      properties:
+        attention-context-enabled:
+          type: boolean
+          default: false
+          description: Enable Attention context for voice messages
+        agent-name:
+          type: string
+          description: Safe registry ID of the voice agent; never a token

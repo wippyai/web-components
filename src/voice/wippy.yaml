@@ -12,6 +12,9 @@ keywords:
   - voice
   - speech-to-text
   - text-to-speech
+exclude:
+  - frontend/node_modules/**
+  - frontend/dist/**
 embed: ["public_files"]
 exclude_meta:
   type: [test]

@@ -29,7 +29,7 @@ export async function webComponent() {
 
 // `define(import.meta.url, …)` reads the `?declare-tag=` query the
 // autoload script appends to the entry URL. With dynamic imports in
-// the entry graph (mermaid fallback), Vite lib mode would normally
+// the entry graph, Vite lib mode would normally
 // emit a 175-byte facade re-exporting from a sub-chunk that owns this
 // statement — and `import.meta.url` would resolve to the sub-chunk URL
 // without the query. `preserveEntrySignatures: false` in vite.config

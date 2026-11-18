@@ -1,5 +1,6 @@
 import type { Frame, Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
+import peleFixtures from './fixtures/pele.json'
 import { loginAsAdmin } from './helpers/login'
 
 test.skip(process.env.SWISSKNIFE_SMOKE !== '1', 'Requires all four Swissknife modules in the Web Host')
@@ -122,6 +123,32 @@ test('Markdown reacts to top-level config, preserves SVG case and sanitizes unsa
   await expect(svg).toHaveCount(0)
   await configure(child, svgTags)
   await expect(svg).toBeVisible()
+})
+
+test('Pele renders all saved diagram types and reports invalid syntax inline', async ({ page }) => {
+  const child = await childFrame(page)
+  await child.evaluate(async (diagrams) => {
+    const api = await (window as SmokeWindow).getWippyApi()
+    await api.loadByTagName('wippy-mermaid')
+
+    const gallery = document.createElement('section')
+    gallery.id = 'pele-gallery'
+    for (const { id, definition } of diagrams) {
+      const diagram = document.createElement('wippy-mermaid')
+      diagram.dataset.fixture = id
+      diagram.setAttribute('definition', definition)
+      gallery.appendChild(diagram)
+    }
+    document.body.prepend(gallery)
+  }, [...peleFixtures, { id: 'invalid', definition: 'not a diagram' }])
+
+  const gallery = renderedRoot(page, child).locator('#pele-gallery')
+  for (const { id } of peleFixtures) {
+    await test.step(id, async () => {
+      await expect(gallery.locator(`[data-fixture="${id}"] svg`)).toHaveCount(1)
+    })
+  }
+  await expect(gallery.locator('[data-fixture="invalid"]').getByRole('alert')).toBeVisible()
 })
 
 test('existing Markdown props override inherited tags and attributes', async ({ page }) => {

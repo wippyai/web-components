@@ -15,6 +15,21 @@
   height: auto;
 }
 
+.mermaid-container > svg.pele {
+  --pele-bg: var(--p-content-background, #fff);
+  --pele-fg: var(--p-text-color, #1f1f1f);
+  --pele-muted: var(--p-text-muted-color, #6e6e6e);
+  --pele-line: var(--p-surface-400, #8a8a8a);
+  --pele-surface: var(--p-content-background, #f3f3f3);
+  --pele-surface-alt: var(--p-surface-100, #e6e6e6);
+  --pele-border: var(--p-content-border-color, #8a8a8a);
+  --pele-accent: var(--p-primary-500, #5b7bd5);
+}
+
+.mermaid-card > svg.pele {
+  background-color: var(--pele-bg);
+}
+
 .mermaid-error {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--p-danger-500, #ef4444);

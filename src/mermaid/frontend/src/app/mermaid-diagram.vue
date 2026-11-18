@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watchEffect } from 'vue'
-import { renderMermaidSVG } from 'beautiful-mermaid'
 import { useContent } from '@wippy-fe/webcomponent-vue'
 import { useComponentProps } from '../constants'
 
@@ -20,19 +19,6 @@ const definition = computed(() =>
 
 const render = ref<Render>({ kind: 'empty' })
 
-function beautifulOpts() {
-  return {
-    bg: 'var(--p-content-background)',
-    fg: 'var(--p-text-color)',
-    accent: 'var(--p-primary-500)',
-    line: 'var(--p-surface-400)',
-    muted: 'var(--p-text-muted-color)',
-    surface: 'var(--p-content-background)',
-    border: 'var(--p-content-border-color)',
-    transparent: props.value.transparent ?? true,
-  }
-}
-
 watchEffect(async (onCleanup) => {
   const def = definition.value
   if (!def) {
@@ -40,32 +26,22 @@ watchEffect(async (onCleanup) => {
     return
   }
 
-  // Tier 1: beautiful-mermaid (sync, already in this bundle).
-  try {
-    render.value = { kind: 'svg', svg: renderMermaidSVG(def, beautifulOpts()) }
-    return
-  }
-  catch {
-    // Fall through to async fallback.
-  }
-
-  // Tier 2: official mermaid, lazy-loaded via dynamic import.
-  // The fallback module ITSELF is dynamically imported so its
-  // `import('mermaid')` graph stays entirely off the entry's static
-  // graph — otherwise mermaid + beautiful-mermaid's shared deps force
-  // Rollup to emit an entry facade, which moves
-  // `define(import.meta.url, …)` into a sub-chunk whose URL lacks the
-  // `?declare-tag=` query and silently breaks WC registration.
   let stale = false
   onCleanup(() => { stale = true })
   render.value = { kind: 'loading' }
+
   try {
-    // rootEl is non-null here — this branch only fires after first render.
+    const { render: renderPele } = await import('pele')
+    if (stale)
+      return
     const host = rootEl.value ?? document.documentElement
-    const { renderWithMermaid } = await import('./mermaid-fallback')
-    const svg = await renderWithMermaid(def, host)
-    if (!stale)
-      render.value = { kind: 'svg', svg }
+    const { svg } = renderPele(def, {
+      fontFamily: getComputedStyle(host).fontFamily,
+      idPrefix: `pele-${Math.random().toString(36).slice(2)}`,
+      links: false,
+      images: false,
+    })
+    render.value = { kind: 'svg', svg }
   }
   catch (err) {
     if (!stale) {
@@ -95,6 +71,7 @@ watchEffect(async (onCleanup) => {
     <div
       v-else-if="render.kind === 'svg'"
       class="mermaid-container"
+      :class="{ 'mermaid-card': props.transparent === false }"
       role="img"
       aria-label="Mermaid diagram"
       v-html="render.svg"

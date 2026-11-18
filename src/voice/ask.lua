@@ -13,7 +13,7 @@ local context = require("context")
 local agents = require("agents")
 local start_tokens = require("start_tokens")
 
-local AGENT_RESOLVER = "voice:agent_resolver"
+local AGENT_RESOLVER = "wippy-swiss.voice:agent_resolver"
 
 local function gen_message_id(): string
     return "voice-msg-" .. tostring(time.now():unix()) .. "-" .. tostring(time.now():nanosecond() % 10000)

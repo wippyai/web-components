@@ -4,7 +4,7 @@ local env = require("env")
 local security = require("security")
 local http_client = require("http_client")
 
-local NS = "voice.env:"
+local NS = "wippy-swiss.voice.env:"
 
 local function get_tts_config()
     local provider = env.get(NS .. "tts_provider") or "deepgram"

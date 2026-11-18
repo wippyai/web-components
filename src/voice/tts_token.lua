@@ -28,7 +28,13 @@ local function get_tts_config()
             return nil, "ElevenLabs token request failed"
         end
 
-        local body = json.decode(resp.body)
+        -- A response can arrive without a body.
+        local raw = resp.body
+        if type(raw) ~= "string" or raw == "" then
+            return nil, "invalid ElevenLabs token response"
+        end
+
+        local body = json.decode(raw)
         if not body or not body.token then
             return nil, "invalid ElevenLabs token response"
         end

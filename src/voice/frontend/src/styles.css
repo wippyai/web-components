@@ -9,6 +9,28 @@
   --vo-speaking-stroke: var(--p-primary-500, #6366f1);
   --vo-speaking-fill: var(--p-primary-500, #6366f1);
   --vo-processing-stroke: var(--p-purple-500, #a855f7);
+  position: fixed;
+  z-index: var(--vo-z-index, 1000);
+  display: block;
+  inline-size: max-content;
+  max-inline-size: calc(100vw - 2rem);
+  inset-block-end: var(--vo-offset-block, 1rem);
+  inset-inline-end: var(--vo-offset-inline, 1rem);
+  pointer-events: none;
+}
+
+:host([hidden]) {
+  display: none;
+}
+
+.vo-overlay {
+  max-inline-size: 100%;
+  pointer-events: none;
+}
+
+.vo-overlay > * {
+  max-inline-size: 100%;
+  pointer-events: auto;
 }
 
 /* ── Orb button ── */
@@ -59,6 +81,24 @@
   color: var(--p-text-color, #374151);
 }
 
+.vo-btn:focus-visible,
+.vo-mode-btn:focus-visible,
+.vo-feed-actions button:focus-visible,
+.vo-feed-collapsed:focus-visible,
+.vo-draft-remove:focus-visible,
+.vo-type-send:focus-visible,
+.vo-confirm-btn:focus-visible,
+.vo-mic-item:focus-visible {
+  outline: 2px solid var(--p-primary-color, var(--p-primary-500, #6366f1));
+  outline-offset: 2px;
+}
+
+.vo-control-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+  stroke-width: 2;
+}
+
 /* ── Mic picker dropdown ── */
 .vo-mic-picker {
   background: var(--p-content-background, #fff);
@@ -68,7 +108,12 @@
 }
 
 .vo-mic-item {
+  width: 100%;
+  border: 0;
+  background: transparent;
   color: var(--p-text-color, #374151);
+  font-family: inherit;
+  text-align: start;
   transition: background 0.1s;
 }
 
@@ -225,8 +270,32 @@
 }
 
 .vo-confirm-btn.cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   color: var(--p-text-muted-color, #9ca3af);
+}
+
+/* ── Prepared composer files ── */
+.vo-draft {
+  background: var(--p-content-background, #fff);
+  border: 1px solid var(--p-content-border-color, #e5e7eb);
+  color: var(--p-text-color, #374151);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  animation: vo-fade 0.2s ease;
+}
+
+.vo-draft-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--p-text-muted-color, #6b7280);
+  font-family: inherit;
+}
+
+.vo-draft-remove:hover {
+  color: var(--p-red-500, #ef4444);
 }
 
 /* ── Typing fallback ── */
@@ -248,6 +317,8 @@
 }
 
 .vo-type-input:disabled { opacity: 0.4; }
+
+.vo-type-input::placeholder { color: var(--p-text-muted-color, #9ca3af); }
 
 .vo-type-send {
   background: var(--p-primary-500, #6366f1);

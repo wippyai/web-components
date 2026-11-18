@@ -4,6 +4,9 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: read
+
 concurrency:
   group: publish
   cancel-in-progress: false
@@ -12,21 +15,60 @@ jobs:
   publish:
     name: Publish (${{ matrix.package }})
     runs-on: ubuntu-latest
+    env:
+      WIPPY_VERSION: v0.3.56a
     strategy:
       fail-fast: false
       matrix:
         package: [mermaid, markdown, chartjs, voice]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.release.tag_name }}
           persist-credentials: false
 
-      - name: Publish module
-        uses: wippyai/action-module-release@main
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
         with:
-          directory: src/${{ matrix.package }}
-          tag: ${{ github.ref_name }}
-          username: ${{ secrets.WIPPY_USERNAME }}
-          password: ${{ secrets.WIPPY_PASSWORD }}
+          version: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: src/${{ matrix.package }}/frontend/pnpm-lock.yaml
+
+      - name: Build frontend assets
+        working-directory: src/${{ matrix.package }}/frontend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
+
+      - name: Install Wippy CLI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tmp="$(mktemp -d)"
+          gh release download "$WIPPY_VERSION" --repo wippyai/runtime \
+            --pattern wippy-linux-amd64 --pattern SHA256SUMS --dir "$tmp"
+          (cd "$tmp" && sha256sum --ignore-missing -c SHA256SUMS)
+          install -Dm0755 "$tmp/wippy-linux-amd64" "$HOME/.wippy/bin/wippy"
+          echo "$HOME/.wippy/bin" >> "$GITHUB_PATH"
+
+      - name: Check module package
+        working-directory: src/${{ matrix.package }}
+        env:
+          VERSION: ${{ github.event.release.tag_name }}
+        run: wippy publish --version "$VERSION" --dry-run
+
+      - name: Publish module
+        working-directory: src/${{ matrix.package }}
+        env:
+          VERSION: ${{ github.event.release.tag_name }}
+          WIPPY_TOKEN: ${{ secrets.WIPPY_TOKEN }}
+          WIPPY_REGISTRY: ${{ secrets.WIPPY_REGISTRY }}
+        run: |
+          if [ -z "${WIPPY_REGISTRY:-}" ]; then unset WIPPY_REGISTRY; fi
+          wippy publish --version "$VERSION" --create

@@ -51,7 +51,8 @@ end
 
 -- send a user message to the session
 local function send_message(hub_pid: string, session_id: string?, start_token: string?,
-    message_id: string, text: string, metadata: {[string]: any}?): (boolean, string?)
+    message_id: string, text: string, metadata: {[string]: any}?, file_uuids: {string}?,
+    context_attachments_ref: {[string]: any}?, runtime_context: {[string]: any}?): (boolean, string?)
 
     local payload: {[string]: any} = {
         type = "session_message",
@@ -59,10 +60,18 @@ local function send_message(hub_pid: string, session_id: string?, start_token: s
         request_id = message_id,
         data = {
             text = text,
-            file_uuids = {},
+            file_uuids = file_uuids or {},
             metadata = metadata or {},
         },
     }
+
+    if context_attachments_ref then
+        payload.data.context_attachments_ref = context_attachments_ref
+    end
+
+    if runtime_context then
+        payload.data.runtime_context = runtime_context
+    end
 
     if session_id then
         payload.session_id = session_id

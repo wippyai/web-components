@@ -34,10 +34,8 @@ function lerpRadii(current: Float32Array, target: Float32Array, speed: number) {
 
 // Read theme colors from CSS custom properties on the shadow host
 function resolveColors(el: SVGElement): Record<string, string> {
-  // Walk up to find the shadow root host (or document root)
-  let root: Element = el
-  while (root.parentElement) root = root.parentElement
-  const host = (root as ShadowRoot).host ?? root
+  const root = el.getRootNode()
+  const host = root instanceof ShadowRoot ? root.host : el.ownerDocument.documentElement
   const s = getComputedStyle(host)
 
   const get = (prop: string, fallback: string) => s.getPropertyValue(prop).trim() || fallback

@@ -6,7 +6,7 @@ Independently publishable Wippy web component modules under the `wippy-swiss` or
 
 | Module | Tag | Description |
 |--------|-----|-------------|
-| [wippy-swiss/mermaid](src/mermaid/README.md) | `<wippy-mermaid>` | Mermaid v11 diagram renderer |
+| [wippy-swiss/mermaid](src/mermaid/README.md) | `<wippy-mermaid>` | Mermaid diagrams rendered by Pele |
 | [wippy-swiss/markdown](src/markdown/README.md) | `<wippy-markdown>` | GitHub-Flavored Markdown to safe HTML |
 | [wippy-swiss/chartjs](src/chartjs/README.md) | `<wippy-chartjs>` | Chart.js v4 universal chart wrapper |
 | [wippy-swiss/voice](src/voice/README.md) | `<wippy-voice-orb>` | Animated voice widget with STT and TTS |

@@ -15,8 +15,9 @@ entries:
 
         Renders GitHub-Flavored Markdown to safe HTML using markdown-it and
         sanitize-html. Conservative default allowlist is safe for arbitrary
-        input; widen via `allowed-tags` / `allowed-attributes` only for
-        trusted content.
+        input. Top-level AppConfig.allowAdditionalTags extends the defaults;
+        allowed-tags / allowed-attributes props override the inherited policy.
+        Raw HTML is parsed and sanitized, including explicitly allowed SVG.
 
         Part of the wippy-swiss collection.
 
@@ -64,8 +65,9 @@ entries:
       description: |
         Renders GitHub-Flavored Markdown to safe HTML. Pass markdown source
         via the `content` attribute. Output is sanitized with sanitize-html
-        using a conservative default allowlist; widen it via `allowed-tags`
-        and `allowed-attributes` only for trusted content.
+        using a conservative default allowlist. Top-level
+        AppConfig.allowAdditionalTags extends the defaults and updates live.
+        allowed-tags and allowed-attributes props override the inherited policy.
 
         Features: headings, bold/italic, ordered/bulleted lists (nested),
         tables with alignment, fenced code blocks with language hints,

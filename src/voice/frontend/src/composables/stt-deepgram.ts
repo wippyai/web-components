@@ -67,11 +67,7 @@ export function createDeepgramSTT(token: string): STTProvider {
     speaking = false
 
     await audio.listDevices()
-    await audio.start()
-
-    mediaStream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: true, noiseSuppression: true },
-    })
+    mediaStream = await audio.start()
 
     await connectWS()
     startAudioCapture()
@@ -123,14 +119,32 @@ export function createDeepgramSTT(token: string): STTProvider {
     if (!mediaStream || !ws) return
     if (!audioCtx)
       audioCtx = new AudioContext({ sampleRate: 16000 })
-    if (!source)
-      source = audioCtx.createMediaStreamSource(mediaStream)
     if (!processor) {
       processor = audioCtx.createScriptProcessor(4096, 1, 1)
-      source.connect(processor)
       processor.connect(audioCtx.destination)
     }
+    if (!source) {
+      source = audioCtx.createMediaStreamSource(mediaStream)
+      source.connect(processor)
+    }
     attachProcessor()
+  }
+
+  async function switchDevice(deviceId: string): Promise<void> {
+    audio.selectDevice(deviceId)
+    if (stopped)
+      return
+
+    if (processor)
+      processor.onaudioprocess = null
+    if (source) {
+      source.disconnect()
+      source = null
+    }
+    audio.stop()
+    mediaStream = null
+    mediaStream = await audio.start()
+    startAudioCapture()
   }
 
   function attachProcessor() {
@@ -195,7 +209,7 @@ export function createDeepgramSTT(token: string): STTProvider {
   function dispose() { stop() }
 
   return {
-    start, pause, resume, stop, dispose,
+    start, pause, resume, stop, dispose, switchDevice,
     get audio() { return audio },
   } as STTProvider & { audio: typeof audio }
 }

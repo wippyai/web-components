@@ -6,6 +6,7 @@ export interface VoiceConfig {
     ask: string
     ttsToken: string
     pageMap: string
+    agentsList: string
   }
   whisperBasePath: string
 }
@@ -15,6 +16,7 @@ export const defaultConfig: VoiceConfig = {
     ask: '/api/v1/voice/ask',
     ttsToken: '/api/v1/voice/tts-token',
     pageMap: '/api/v1/voice/pages',
+    agentsList: '/api/v1/agents/list',
   },
   whisperBasePath: '/voice/',
 }

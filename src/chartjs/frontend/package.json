@@ -11,27 +11,29 @@
     "package.json"
   ],
   "dependencies": {
-    "@wippy-fe/theme": "^0.0.34",
-    "@wippy-fe/webcomponent-core": "^0.0.34",
-    "@wippy-fe/webcomponent-vue": "^0.0.34",
-    "chart.js": "^4.4.0"
+    "@wippy-fe/shared": "0.0.70",
+    "@wippy-fe/theme": "0.0.70",
+    "@wippy-fe/webcomponent-core": "0.0.70",
+    "@wippy-fe/webcomponent-vue": "0.0.70",
+    "chart.js": "^4.6.1"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^7.0.0",
-    "@typescript-eslint/parser": "^7.0.0",
-    "@vitejs/plugin-vue": "^5.0.0",
-    "@wippy-fe/vite-plugin": "^0.0.34",
-    "@wippy-fe/proxy": "^0.0.34",
-    "eslint": "^8.57.0",
-    "eslint-plugin-vue": "^9.0.0",
-    "typescript": "^5.0.0",
-    "vite": "^6.0.0",
-    "vue": "^3.5.0",
-    "vue-eslint-parser": "^9.4.3",
-    "vue-tsc": "^2.0.0"
+    "@eslint/js": "^10.0.1",
+    "@vitejs/plugin-vue": "^6.0.11",
+    "@wippy-fe/proxy": "0.0.70",
+    "@wippy-fe/vite-plugin": "0.0.70",
+    "eslint": "^10.15.0",
+    "eslint-plugin-vue": "^10.12.1",
+    "globals": "^17.14.0",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.73.0",
+    "vite": "^7.3.8",
+    "vue": "^3.5.45",
+    "vue-eslint-parser": "^10.4.2",
+    "vue-tsc": "^3.3.14"
   },
   "peerDependencies": {
-    "@wippy-fe/proxy": "^0.0.34",
+    "@wippy-fe/proxy": "0.0.70",
     "vue": "^3.5.0"
   },
   "wippy": {
@@ -43,7 +45,16 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["line", "bar", "doughnut", "pie", "radar", "polarArea", "scatter", "bubble"],
+          "enum": [
+            "line",
+            "bar",
+            "doughnut",
+            "pie",
+            "radar",
+            "polarArea",
+            "scatter",
+            "bubble"
+          ],
           "default": "doughnut",
           "description": "Chart.js chart type"
         },
@@ -71,11 +82,25 @@
           "type": "object",
           "description": "Emitted when the user clicks a data element (a bar, point or slice). A click outside any data element emits nothing.",
           "properties": {
-            "label": { "type": "string", "description": "X label of the clicked element (category label, or x value for scatter and bubble)" },
-            "datasetLabel": { "type": "string", "description": "Label of the clicked dataset" },
-            "datasetIndex": { "type": "number", "description": "Index of the clicked dataset" },
-            "dataIndex": { "type": "number", "description": "Index of the clicked data point within its dataset" },
-            "value": { "description": "Raw data point: a number, or an object for scatter and bubble" }
+            "label": {
+              "type": "string",
+              "description": "X label of the clicked element (category label, or x value for scatter and bubble)"
+            },
+            "datasetLabel": {
+              "type": "string",
+              "description": "Label of the clicked dataset"
+            },
+            "datasetIndex": {
+              "type": "number",
+              "description": "Index of the clicked dataset"
+            },
+            "dataIndex": {
+              "type": "number",
+              "description": "Index of the clicked data point within its dataset"
+            },
+            "value": {
+              "description": "Raw data point: a number, or an object for scatter and bubble"
+            }
           }
         }
       }
@@ -90,7 +115,7 @@
     "build": "vite build",
     "build:debug": "vite build --mode development",
     "dev": "vite build --watch",
-    "lint": "eslint src --ext .ts,.vue",
-    "lint:fix": "eslint src --ext .ts,.vue --fix"
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix"
   }
 }

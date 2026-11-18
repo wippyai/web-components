@@ -42,6 +42,7 @@ export default defineConfig({
       preserveEntrySignatures: false,
     },
     outDir: '../public',
+    emptyOutDir: true,
     sourcemap: false,
   },
 })

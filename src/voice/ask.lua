@@ -86,13 +86,73 @@ local function handler()
         return
     end
 
+    local request_id = nil
+    if input.request_id ~= nil then
+        if type(input.request_id) ~= "string" or input.request_id == "" then
+            res:set_status(http.STATUS.BAD_REQUEST)
+            res:write_json({ success = false, error = "request_id must be a non-empty string" })
+            return
+        end
+        request_id = input.request_id
+    end
+
+    local file_uuids: {string} = {}
+    if input.file_uuids ~= nil then
+        if type(input.file_uuids) ~= "table" or #input.file_uuids > 16 then
+            res:set_status(http.STATUS.BAD_REQUEST)
+            res:write_json({ success = false, error = "file_uuids must be an array of at most 16 identifiers" })
+            return
+        end
+        local count = 0
+        for key, value in pairs(input.file_uuids) do
+            count = count + 1
+            if type(key) ~= "number" or key < 1 or key % 1 ~= 0
+                or type(value) ~= "string" or value == "" or #value > 160
+                or not string.match(value, "^[%w%-]+$") then
+                res:set_status(http.STATUS.BAD_REQUEST)
+                res:write_json({ success = false, error = "file_uuids contains an invalid identifier" })
+                return
+            end
+            file_uuids[key] = value
+        end
+        if count ~= #input.file_uuids then
+            res:set_status(http.STATUS.BAD_REQUEST)
+            res:write_json({ success = false, error = "file_uuids must be a dense array" })
+            return
+        end
+    end
+
+    local context_attachments_ref = input.context_attachments_ref
+    if context_attachments_ref ~= nil and type(context_attachments_ref) ~= "table" then
+        res:set_status(http.STATUS.BAD_REQUEST)
+        res:write_json({ success = false, error = "context_attachments_ref must be an object" })
+        return
+    end
+
+    local runtime_context = nil
+    if input.runtime_context ~= nil then
+        if type(input.runtime_context) ~= "table" then
+            res:set_status(http.STATUS.BAD_REQUEST)
+            res:write_json({ success = false, error = "runtime_context must be an object" })
+            return
+        end
+        local intent_nonce = input.runtime_context.ui_action_intent_nonce
+        if type(intent_nonce) ~= "string" or intent_nonce == "" or #intent_nonce > 160 then
+            res:set_status(http.STATUS.BAD_REQUEST)
+            res:write_json({ success = false, error = "runtime_context has an invalid UI action intent" })
+            return
+        end
+        runtime_context = { ui_action_intent_nonce = intent_nonce }
+    end
+
     local session_id = input.session_id and tostring(input.session_id) or nil
     local start_token = input.start_token and tostring(input.start_token) or nil
     local page_ctx = agents.validate_context(input.context)
+    local route_by_page = input.route_by_page ~= false
 
     if session_id and page_ctx and page_ctx.page then
         -- existing session: switch agent if page changed, update context
-        if input.context and input.context.agent_changed then
+        if route_by_page and input.context and input.context.agent_changed then
             local target_agent = resolve_agent_for_context(page_ctx)
             if agents.is_valid_agent(target_agent) then
                 local ok, err = session.switch_agent(hub_pid, session_id, target_agent)
@@ -110,7 +170,7 @@ local function handler()
                 logger:warn("context write failed", { error = tostring(err) })
             end
         end
-    elseif not session_id and page_ctx and page_ctx.page then
+    elseif not session_id and route_by_page and page_ctx and page_ctx.page then
         -- new session: resolve agent and pack start_token
         local target_agent = resolve_agent_for_context(page_ctx)
         logger:info("new session agent resolution", {
@@ -133,12 +193,13 @@ local function handler()
     end
 
     -- send the user message
-    local message_id = gen_message_id()
+    local message_id = request_id or gen_message_id()
     local metadata: {[string]: any} = { input_type = "voice" }
 
     local ok, send_err = session.send_message(
         hub_pid, session_id, start_token,
-        message_id, tostring(input.text), metadata
+        message_id, tostring(input.text), metadata, file_uuids,
+        context_attachments_ref, runtime_context
     )
 
     if not ok then

@@ -2,6 +2,7 @@ import { resolve } from 'node:path'
 import { copyFileSync } from 'node:fs'
 import vue from '@vitejs/plugin-vue'
 import { wippyComponentPlugin } from '@wippy-fe/vite-plugin'
+import Icons from 'unplugin-icons/vite'
 import { defineConfig } from 'vite'
 
 const COPY_TO_PUBLIC: { src: string; name: string }[] = [
@@ -14,6 +15,7 @@ export default defineConfig({
   base: '/@static-wippy-swiss/voice/',
   plugins: [
     vue(),
+    Icons({ compiler: 'vue3' }),
     wippyComponentPlugin(),
     {
       name: 'copy-voice-assets',
@@ -52,6 +54,7 @@ export default defineConfig({
       preserveEntrySignatures: false,
     },
     outDir: '../public',
+    emptyOutDir: true,
     sourcemap: false,
   },
 })

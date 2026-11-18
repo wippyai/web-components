@@ -51,7 +51,7 @@ function getThemeColors(): string[] {
 }
 
 function applyThemeFallback(cfg: ChartConfiguration, palette: string[]): void {
-  const datasets = (cfg.data?.datasets ?? []) as Array<Record<string, unknown>>
+  const datasets = cfg.data?.datasets ?? []
   const isPieLike = PIE_LIKE.has(String(cfg.type))
   for (let i = 0; i < datasets.length; i++) {
     const ds = datasets[i]

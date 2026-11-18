@@ -13,10 +13,8 @@ entries:
         the tag auto-registers on the next start — no copy-paste, no per-app
         setup.
 
-        Renders any Mermaid v11 diagram type. A fast primary engine handles
-        flowchart, sequence, class, ER, state, and xychart. All other types
-        (pie, gantt, mindmap, journey, gitGraph, timeline, sankey, …) fall
-        back to the full mermaid library, loaded lazily on first use.
+        Renders Mermaid diagrams with Pele. See https://pele.run/compatibility
+        for supported syntax.
 
         Part of the wippy-swiss collection.
 
@@ -62,16 +60,9 @@ entries:
       auto_register: true
       url: /@static-wippy-swiss/mermaid
       description: |
-        Renders any Mermaid v11 diagram. Pass the diagram source via the
-        `definition` attribute (NOT as text content). Supports flowchart,
-        sequenceDiagram, classDiagram, stateDiagram, erDiagram, journey,
-        gantt, pie, mindmap, timeline, gitGraph, quadrantChart,
-        requirementDiagram, sankey, xychart, block, packet, kanban,
-        architecture, radar.
-
-        Flowchart, sequence, class, ER, state, and xychart use a fast
-        primary engine. Less common types fall back to a heavier renderer
-        that loads on first use; the diagram appears after a brief delay.
+        Renders Mermaid diagrams with Pele. Pass the source via the
+        `definition` attribute. See https://pele.run/compatibility for
+        supported syntax.
 
         Examples:
 
@@ -103,7 +94,7 @@ entries:
         definition:
           type: string
           default: ""
-          description: Mermaid v11 diagram source. Newlines must be real LF characters in the attribute value.
+          description: Mermaid diagram source supported by Pele. Use real newlines in the attribute value.
         transparent:
           type: boolean
           default: true

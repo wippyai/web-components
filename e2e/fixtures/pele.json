@@ -1,0 +1,134 @@
+[
+  {
+    "id": "agentflow",
+    "definition": "agentflow-beta TB\n  brief[\"Release brief\"]@{ shape: input }\n  review[\"Check changes\"]@{ shape: task }\n  ready[\"Publish notes\"]@{ shape: task }\n  brief --> review --> ready"
+  },
+  {
+    "id": "architecture",
+    "definition": "architecture-beta\n  group store(cloud)[Store]\n  service edge(internet)[Edge] in store\n  service api(server)[API] in store\n  service db(database)[Database] in store\n  edge:R -- L:api\n  api:R -- L:db"
+  },
+  {
+    "id": "block",
+    "definition": "block-beta\n  columns 3\n  entry[\"Intake\"]:3\n  plan[\"Plan\"] build[\"Build\"] test[\"Test\"]\n  entry --> build\n  plan --> build\n  build --> test"
+  },
+  {
+    "id": "c4",
+    "definition": "C4Context\n  title Delivery portal\n  Person(sender, \"Sender\", \"Creates shipments\")\n  System(portal, \"Delivery portal\", \"Tracks shipments\")\n  System_Ext(courier, \"Courier API\", \"Returns delivery updates\")\n  Rel(sender, portal, \"Books shipment\")\n  Rel(portal, courier, \"Gets status\")"
+  },
+  {
+    "id": "class",
+    "definition": "classDiagram\n  class Order {\n    +String number\n    +confirm()\n  }\n  class Parcel {\n    +String trackingCode\n  }\n  Order \"1\" *-- \"*\" Parcel : ships"
+  },
+  {
+    "id": "cynefin",
+    "definition": "cynefin-beta\n  title Release decisions\n  complex\n    \"Test a new workflow\"\n  complicated\n    \"Investigate latency\"\n  clear\n    \"Rotate access keys\"\n  chaotic\n    \"Restore checkout\""
+  },
+  {
+    "id": "er",
+    "definition": "erDiagram\n  BUYER ||--o{ ORDER : places\n  ORDER ||--|{ PARCEL : contains\n  ORDER {\n    int id PK\n    date placed_at\n  }\n  PARCEL {\n    string tracking_code PK\n  }"
+  },
+  {
+    "id": "event-modeling",
+    "definition": "eventmodeling\n  tf 01 ui BookingScreen\n  tf 02 cmd ReserveRoom\n  tf 03 evt RoomReserved\n  tf 04 rmo BookingSummary ->> 03"
+  },
+  {
+    "id": "flowchart",
+    "definition": "flowchart LR\n  a([Open request]) --> b{Approved?}\n  b -->|Yes| c[Schedule work]\n  b -->|No| d[Revise request]"
+  },
+  {
+    "id": "gantt",
+    "definition": "gantt\n  title Release schedule\n  dateFormat YYYY-MM-DD\n  axisFormat %b %d\n  todayMarker off\n  section Delivery\n  Design :done, design, 2026-11-16, 2d\n  Build :active, build, after design, 3d\n  Verify :verify, after build, 2d"
+  },
+  {
+    "id": "git-graph",
+    "definition": "gitGraph\n  commit id: \"Base\"\n  branch release\n  checkout release\n  commit id: \"Prepare\"\n  checkout main\n  commit id: \"Fix\"\n  merge release tag: \"v1.0\""
+  },
+  {
+    "id": "ishikawa",
+    "definition": "ishikawa-beta\n  Late shipment\n  Warehouse\n    Missing stock\n    Queue overload\n  Courier\n    Missed pickup\n    Road closure"
+  },
+  {
+    "id": "journey",
+    "definition": "journey\n  title Collect an order\n  section Online\n    Reserve: 5: Buyer\n    Get a code: 4: Buyer, Store\n  section In store\n    Find locker: 3: Buyer\n    Pick up order: 5: Buyer, Store"
+  },
+  {
+    "id": "kanban",
+    "definition": "kanban\n  backlog[Backlog]\n    one[Review feedback]\n    two[Update templates]\n  active[In progress]\n    three[Verify checkout]\n  shipped[Done]\n    four[Write release notes]"
+  },
+  {
+    "id": "mindmap",
+    "definition": "mindmap\n  root((Release))\n    Build\n      Package assets\n      Run checks\n    Publish\n      Tag version\n      Share notes"
+  },
+  {
+    "id": "packet",
+    "definition": "packet-beta\n  title Message header\n  0-7: \"Kind\"\n  8-15: \"Flags\"\n  16-31: \"Length\"\n  32-63: \"Message ID\""
+  },
+  {
+    "id": "pie",
+    "definition": "pie showData\n  title Booking channels\n  \"Web\" : 55\n  \"Mobile\" : 30\n  \"Desk\" : 15"
+  },
+  {
+    "id": "quadrant",
+    "definition": "quadrantChart\n  title Delivery priorities\n  x-axis Low effort --> High effort\n  y-axis Low impact --> High impact\n  quadrant-1 Plan\n  quadrant-2 Do first\n  quadrant-3 Delegate\n  quadrant-4 Defer\n  Cache: [0.25, 0.85]\n  Search: [0.68, 0.75]\n  Cleanup: [0.31, 0.19]"
+  },
+  {
+    "id": "radar",
+    "definition": "radar-beta\n  title Service quality\n  axis s[\"Speed\"], r[\"Reliability\"], a[\"Accuracy\"], u[\"Usability\"], c[\"Coverage\"]\n  curve baseline[\"Baseline\"]{70, 90, 60, 65, 55}\n  curve next[\"Target\"]{85, 94, 75, 82, 76}\n  min 0\n  max 100"
+  },
+  {
+    "id": "railroad",
+    "definition": "railroad-ebnf-beta\n  choice = \"ship\" | \"hold\" ;\n  request = choice \":\" identifier ;"
+  },
+  {
+    "id": "requirement",
+    "definition": "requirementDiagram\n  requirement TrackParcel {\n    id: 1\n    text: Show parcel status\n    risk: medium\n    verifymethod: test\n  }\n  element TrackingView {\n    type: web page\n  }\n  TrackingView - satisfies -> TrackParcel"
+  },
+  {
+    "id": "sankey",
+    "definition": "sankey-beta\n  Orders,Warehouse,70\n  Orders,Store,30\n  Warehouse,Courier,70\n  Store,Pickup,30"
+  },
+  {
+    "id": "sequence",
+    "definition": "sequenceDiagram\n  participant B as Buyer\n  participant A as Booking API\n  participant D as Database\n  B->>A: Reserve room\n  A->>D: Save booking\n  D-->>A: Booking ID\n  A-->>B: Confirm reservation"
+  },
+  {
+    "id": "state",
+    "definition": "stateDiagram-v2\n  [*] --> Draft\n  Draft --> Review: Submit\n  Review --> Draft: Request changes\n  Review --> Published: Approve\n  Published --> [*]"
+  },
+  {
+    "id": "swimlane",
+    "definition": "swimlane-beta LR\n  subgraph sender [Sender]\n    open[Open request]\n    send[Send details]\n    open --> send\n  end\n  subgraph desk [Service desk]\n    review[Review details]\n    close[Close request]\n    review --> close\n  end\n  send --> review"
+  },
+  {
+    "id": "timeline",
+    "definition": "timeline\n  title Portal release\n  section Preparation\n    Nov 16 : Review scope : Assign owners\n    Nov 17 : Finish tests\n  section Release\n    Nov 18 : Publish portal : Notify staff"
+  },
+  {
+    "id": "tree-view",
+    "definition": "treeView-beta\n\"diagrams/\"\n  \"booking.mmd\"\n  \"shipment.mmd\"\n\"public/\"\n  \"dashboard.html\""
+  },
+  {
+    "id": "treemap",
+    "definition": "treemap-beta\n  \"Direct\"\n    \"Web\": 45\n    \"Mobile\": 32\n  \"Partner\"\n    \"Agency\": 15\n    \"Desk\": 8"
+  },
+  {
+    "id": "use-case",
+    "definition": "usecase-beta\n  direction LR\n  actor Guest(\"Hotel guest\")\n  systemBoundary \"Booking portal\"\n    Reserve(\"Reserve room\")\n    Review(\"View booking\")\n  end\n  Guest --> Reserve\n  Guest --> Review"
+  },
+  {
+    "id": "venn",
+    "definition": "venn-beta\n  title Team skills\n  set Dev[\"Development\"]: 25\n  set Ops[\"Operations\"]: 20\n  union Dev,Ops[\"Both\"]: 8"
+  },
+  {
+    "id": "wardley",
+    "definition": "wardley-beta\n  title Delivery service\n  anchor Customer [0.93, 0.31]\n  component Portal [0.73, 0.52]\n  component Routing [0.52, 0.64]\n  component Storage [0.25, 0.86]\n  Customer -> Portal\n  Portal -> Routing\n  Routing -> Storage"
+  },
+  {
+    "id": "xy",
+    "definition": "xychart-beta\n  title Monthly bookings\n  x-axis [Aug, Sep, Oct, Nov]\n  y-axis \"Bookings\" 0 --> 100\n  bar [38, 52, 61, 80]\n  line [41, 50, 62, 76]"
+  },
+  {
+    "id": "info",
+    "definition": "info"
+  }
+]

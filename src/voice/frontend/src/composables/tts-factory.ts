@@ -62,7 +62,7 @@ export function useTTSManager(config: VoiceConfig = defaultConfig) {
     pendingChunks = []
     pendingFlush = false
 
-    let ttsConfig: TTSConfig | null = null
+    let ttsConfig: TTSConfig | null
     if (cachedConfig) {
       ttsConfig = cachedConfig
       cachedConfig = null

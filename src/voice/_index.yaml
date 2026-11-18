@@ -82,9 +82,6 @@ entries:
   - name: session
     kind: library.lua
     source: file://session.lua
-    modules:
-      - json
-      - logger
 
   # ── Functions ──
   - name: ask

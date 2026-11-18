@@ -16,7 +16,7 @@ The Voice Orb uses the Wippy proxy for speech-to-text, session management, and p
 ## Backend requirements
 
 Needs three API endpoints wired to an authenticated router:
-- `POST /voice/ask` — session + agent routing
+- `POST /voice/ask` prepares the selected agent and message for the authenticated Web Host session relay
 - `POST /voice/tts-token` — TTS/STT credential provisioning
 - `GET /voice/pages` — page-to-agent mapping
 

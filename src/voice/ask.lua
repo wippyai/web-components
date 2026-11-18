@@ -1,6 +1,6 @@
 -- voice ask endpoint: abstract, zero domain knowledge
 -- receives text + page context from frontend
--- resolves agent via contract + registry, sends context + message to session
+-- resolves the agent and prepares commands for the authenticated Web Host relay
 local http = require("http")
 local json = require("json")
 local security = require("security")
@@ -57,8 +57,6 @@ local function handler()
         return
     end
 
-    local user_id = actor:id()
-
     local body = req:body()
     if not body or body == "" then
         res:set_status(http.STATUS.BAD_REQUEST)
@@ -76,13 +74,6 @@ local function handler()
     if not input.text or input.text == "" then
         res:set_status(http.STATUS.BAD_REQUEST)
         res:write_json({ success = false, error = "text is required" })
-        return
-    end
-
-    local hub_pid = session.get_hub(user_id)
-    if not hub_pid then
-        res:set_status(http.STATUS.INTERNAL_ERROR)
-        res:write_json({ success = false, error = "user hub not found" })
         return
     end
 
@@ -149,26 +140,26 @@ local function handler()
     local start_token = input.start_token and tostring(input.start_token) or nil
     local page_ctx = agents.validate_context(input.context)
     local route_by_page = input.route_by_page ~= false
+    local commands: {{[string]: any}} = {}
 
     if session_id and page_ctx and page_ctx.page then
         -- existing session: switch agent if page changed, update context
         if route_by_page and input.context and input.context.agent_changed then
             local target_agent = resolve_agent_for_context(page_ctx)
             if agents.is_valid_agent(target_agent) then
-                local ok, err = session.switch_agent(hub_pid, session_id, target_agent)
-                if not ok then
-                    logger:warn("agent switch failed", { error = tostring(err), agent = target_agent })
-                end
+                table.insert(commands, session.command(session_id, { command = "agent", name = target_agent }))
             end
         end
 
         -- write raw page context to session
         local serialized = context.serialize(page_ctx)
         if serialized and serialized ~= "" then
-            local ok, err = session.write_context(hub_pid, session_id, context.CONTEXT_KEY, serialized)
-            if not ok then
-                logger:warn("context write failed", { error = tostring(err) })
-            end
+            table.insert(commands, session.command(session_id, {
+                command = "context",
+                action = "write",
+                key = context.CONTEXT_KEY,
+                data = serialized,
+            }))
         end
     elseif not session_id and route_by_page and page_ctx and page_ctx.page then
         -- new session: resolve agent and pack start_token
@@ -192,23 +183,18 @@ local function handler()
         end
     end
 
-    -- send the user message
     local message_id = request_id or gen_message_id()
     local metadata: {[string]: any} = { input_type = "voice" }
-
-    local ok, send_err = session.send_message(
-        hub_pid, session_id, start_token,
-        message_id, tostring(input.text), metadata, file_uuids,
-        context_attachments_ref, runtime_context
-    )
-
-    if not ok then
-        res:set_status(http.STATUS.INTERNAL_ERROR)
-        res:write_json({ success = false, error = "send failed: " .. tostring(send_err) })
-        return
-    end
-
-    res:write_json({ success = true, message_id = message_id })
+    res:write_json({
+        success = true,
+        message_id = message_id,
+        start_token = start_token,
+        commands = #commands > 0 and commands or nil,
+        message = session.message(
+            session_id, message_id, tostring(input.text), metadata,
+            file_uuids, context_attachments_ref, runtime_context
+        ),
+    })
 end
 
 return { handler = handler }

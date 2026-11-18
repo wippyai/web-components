@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { ws } from '@wippy-fe/proxy'
 import type { PageContext } from './page-context'
 import { defaultConfig, type VoiceConfig } from './config'
 
@@ -18,6 +19,14 @@ export interface VoiceAskResponse {
   success: boolean
   message_id?: string
   error?: string
+}
+
+type RelayCommand = Parameters<typeof ws.send>[0]
+type RelayMessage = Extract<RelayCommand, { type: 'session_message' }>
+type PreparedVoiceAsk = VoiceAskResponse & {
+  start_token?: string
+  commands?: RelayCommand[]
+  message?: Omit<RelayMessage, 'session_id'> & { session_id?: string }
 }
 
 export interface ContextAttachmentsReference {
@@ -183,14 +192,32 @@ export function useVoiceSession(config: VoiceConfig = defaultConfig) {
         agent_changed: pageChanged,
       }
       payload.context = contextWithChange
-      lastContext.value = context
     }
 
     try {
       const { data } = await api.post(config.endpoints.ask, payload)
-      if (data.success && data.message_id)
-        return { success: true, message_id: data.message_id }
-      return sendFailure(data.error || 'unknown error')
+      const prepared: PreparedVoiceAsk = data
+      if (!prepared.success || !prepared.message_id || !prepared.message)
+        return sendFailure(prepared.error || 'Voice message preparation failed')
+
+      let targetSession = prepared.message.session_id
+      if (!targetSession) {
+        const open = await ws.sendWithResponse({ type: 'session_open', start_token: prepared.start_token })
+        if (open.topic !== 'session.opened' || !open.data.session_id)
+          return sendFailure(open.topic === 'error' ? open.data.message : 'Voice session did not open')
+        targetSession = open.data.session_id
+        sessionId.value = targetSession
+        pendingSessionRequestId = null
+      }
+
+      for (const command of prepared.commands ?? [])
+        ws.send(command)
+      const response = await ws.sendWithResponse({ ...prepared.message, session_id: targetSession })
+      if (response.topic === 'error')
+        return sendFailure(response.data.message)
+      if (context)
+        lastContext.value = context
+      return { success: true, message_id: prepared.message_id }
     }
     catch (e: any) {
       return sendFailure(e.message)

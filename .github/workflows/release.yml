@@ -4,17 +4,61 @@ on:
   push:
     branches: [main]
 
-permissions:
-  contents: write
-  pull-requests: write
+permissions: {}
 
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Wippy runtime
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WIPPY_VERSION: v0.3.56a
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          trap 'rm -rf "$tmp"' EXIT
+          gh release download "$WIPPY_VERSION" --repo wippyai/runtime \
+            --pattern wippy-linux-amd64 --pattern SHA256SUMS --dir "$tmp"
+          (cd "$tmp" && sha256sum --ignore-missing -c SHA256SUMS)
+          install -Dm0755 "$tmp/wippy-linux-amd64" "$HOME/.wippy/bin/wippy"
+          echo "$HOME/.wippy/bin" >> "$GITHUB_PATH"
+
+      # The root contains package sources. Browser tests use a consuming app.
+      - name: Lint module sources
+        run: |
+          wippy install
+          wippy lint --level error --no-color
+
   release:
-    uses: wippyai/template-module/.github/workflows/reusable-release.yml@v1
-    with:
-      publish: false
-    secrets: inherit
+    needs: lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Mint release app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ secrets.RELEASE_PLEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_PLEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Run release-please
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

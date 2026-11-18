@@ -51,12 +51,20 @@ function renderedRoot(page: Page, child: Frame) {
 }
 
 async function configure(child: Frame, tags: Tags) {
-  await child.evaluate(({ tags, fragmentId }) => {
-    window.postMessage(JSON.stringify({
-      $schema: '/schemas/wippy-context-2.1.json', type: '@gen2-chat', action: 'set-config', fragmentId,
-      allowAdditionalTags: tags,
-    }), '*')
-  }, { tags, fragmentId: child.name().startsWith('wf:') ? child.name().slice(3) : undefined })
+  const fragmentId = child.name().startsWith('wf:') ? child.name().slice(3) : undefined
+  const message = JSON.stringify({
+    $schema: '/schemas/wippy-context-2.1.json', type: '@gen2-chat', action: 'set-config', fragmentId,
+    allowAdditionalTags: tags,
+  })
+  if (fragmentId) {
+    await child.evaluate(message => window.postMessage(message, '*'), message)
+  }
+  else {
+    const iframe = await child.frameElement()
+    await iframe.evaluate((element, message) => {
+      (element as HTMLIFrameElement).contentWindow?.postMessage(message, '*')
+    }, message)
+  }
   await expect.poll(() => child.evaluate(() => Boolean((window as SmokeWindow).__WIPPY_APP_CONFIG__?.allowAdditionalTags?.svg))).toBe(Boolean(tags.svg))
 }
 
@@ -145,7 +153,7 @@ test('Pele renders all saved diagram types and reports invalid syntax inline', a
   const gallery = renderedRoot(page, child).locator('#pele-gallery')
   for (const { id } of peleFixtures) {
     await test.step(id, async () => {
-      await expect(gallery.locator(`[data-fixture="${id}"] svg`)).toHaveCount(1)
+      await expect(gallery.locator(`[data-fixture="${id}"] .mermaid-container > svg`)).toHaveCount(1)
     })
   }
   await expect(gallery.locator('[data-fixture="invalid"]').getByRole('alert')).toBeVisible()

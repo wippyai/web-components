@@ -143,7 +143,7 @@ export function useVoiceSession(config: VoiceConfig = defaultConfig) {
           text,
           sessionId: sessionId.value || undefined,
           startToken: startToken || undefined,
-          ...(attentionContextEnabled ? { attentionContextEnabled: true } : {}),
+          attentionContextEnabled,
         })
       }
       catch (e: any) {

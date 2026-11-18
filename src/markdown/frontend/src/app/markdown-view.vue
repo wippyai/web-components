@@ -1,16 +1,21 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onUnmounted, shallowRef } from 'vue'
 import MarkdownIt from 'markdown-it'
 import sanitizeHtml from 'sanitize-html'
+import { config, on } from '@wippy-fe/proxy'
 import { useContent } from '@wippy-fe/webcomponent-vue'
 import { useComponentProps } from '../constants'
 import { defaultAllowedTags, defaultAllowedAttributes } from '../markdown-defaults'
 
 const props = useComponentProps()
 const content = useContent()
+const additionalTags = shallowRef(config.allowAdditionalTags ?? {})
+onUnmounted(on('@config', () => {
+  additionalTags.value = { ...config.allowAdditionalTags }
+}))
 
 const md = new MarkdownIt({
-  html: false,
+  html: true,
   breaks: true,
   linkify: true,
   typographer: false,
@@ -22,7 +27,9 @@ const markdownSource = computed(() =>
 
 const allowedTags = computed(() => {
   const custom = props.value.allowedTags
-  return (custom && custom.length > 0) ? custom : defaultAllowedTags
+  return (custom && custom.length > 0)
+    ? custom
+    : [...defaultAllowedTags, ...Object.keys(additionalTags.value)]
 })
 
 const allowedAttributes = computed(() => {
@@ -34,7 +41,10 @@ const allowedAttributes = computed(() => {
       // Fall through to defaults
     }
   }
-  return defaultAllowedAttributes
+  const attributes = { ...defaultAllowedAttributes }
+  for (const [tag, attrs] of Object.entries(additionalTags.value))
+    attributes[tag] = [...new Set([...(attributes[tag] ?? []), ...attrs])]
+  return attributes
 })
 
 const renderedHtml = computed(() => {
@@ -43,6 +53,8 @@ const renderedHtml = computed(() => {
   const rawHtml = md.render(markdownSource.value)
 
   return sanitizeHtml(rawHtml, {
+    // Preserve case-sensitive SVG names such as viewBox and linearGradient.
+    parser: { lowerCaseTags: false, lowerCaseAttributeNames: false },
     allowedTags: allowedTags.value,
     allowedAttributes: allowedAttributes.value,
     allowedClasses: {

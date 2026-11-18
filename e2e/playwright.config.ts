@@ -31,6 +31,7 @@ export default defineConfig({
   timeout: 30_000,
   use: {
     baseURL: WIPPY_URL,
+    channel: process.env.PLAYWRIGHT_CHANNEL,
     trace: 'on-first-retry',
     video: 'retain-on-failure',
     screenshot: 'only-on-failure',

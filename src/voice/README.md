@@ -11,7 +11,7 @@ The Voice Orb uses the Wippy proxy for speech-to-text, session management, and p
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `attention-context-enabled` | boolean | `false` | Includes Attention context with voice and typed messages when the host provides it. |
-| `agent-name` | string | | Registry ID of the voice agent. The backend uses the page-to-agent mapping when no override is supplied. |
+| `agent-name` | string | | Registry name of the voice agent. When omitted, Voice follows the page-to-agent mapping. |
 
 ## Backend requirements
 
@@ -37,9 +37,9 @@ Needs three API endpoints wired to an authenticated router:
     - name: server
       value: app:gateway
     - name: router
-      value: app:authenticated_api
+      value: app:api
     - name: env_storage
-      value: app:env_storage
+      value: app.env:store
 ```
 
 ## Environment variables
@@ -58,4 +58,4 @@ Configure via the `env_storage` requirement:
 
 ## Notes
 
-The Whisper STT path bundles ONNX Runtime and a Whisper transcriber worker (~130 MB). The Whisper model is downloaded on first activation and cached in the browser. ORT WASM files are loaded from CDN (`cdn.jsdelivr.net`) on demand.
+The release build includes the Whisper transcriber worker and Silero voice activity assets. The browser downloads and caches the selected Whisper model on first activation. ONNX Runtime loads matching WASM files from `cdn.jsdelivr.net` on demand.

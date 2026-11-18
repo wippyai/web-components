@@ -488,16 +488,19 @@ async function resolveAgentStartToken(agentName: string) {
     const candidate = data?.agents?.find((item: { name?: string; start_token?: string }) => item.name === agentName)
     if (!candidate?.start_token) throw new Error('Agent has no start token')
     if (props.value.agentName !== agentName) return
-    voiceSession.clearSession()
-    voiceSession.setStartToken(candidate.start_token)
+    voiceSession.setStartToken(candidate.start_token, false)
   } catch (e: any) {
     console.error('Voice agent resolution failed:', e?.message || e)
   }
 }
 
 watch(() => props.value.agentName, (agentName) => {
-  if (agentName && api) void resolveAgentStartToken(agentName)
-}, { immediate: true })
+  if (!api) return
+  voiceSession.clearSession()
+  voiceSession.setStartToken(null)
+  if (agentName) void resolveAgentStartToken(agentName)
+  else void initVoice()
+})
 
 async function initVoice() {
   if (!api) return

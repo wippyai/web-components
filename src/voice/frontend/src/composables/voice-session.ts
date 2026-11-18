@@ -6,6 +6,7 @@ export interface VoiceAskPayload {
   text: string
   file_uuids?: string[]
   start_token?: string
+  route_by_page?: false
   session_id?: string
   context?: PageContext
   context_attachments_ref?: ContextAttachmentsReference
@@ -85,11 +86,15 @@ export function useVoiceSession(config: VoiceConfig = defaultConfig) {
   let api: any = null
   let attention: AttentionMessageContextApi | null = null
   let startToken: string | null = null
+  let routeByPage = true
   let pendingSessionRequestId: string | null = null
 
   function setApi(a: any) { api = a }
   function setAttention(a: AttentionMessageContextApi | null) { attention = a }
-  function setStartToken(token: string) { startToken = token }
+  function setStartToken(token: string | null, usePageAgent = true) {
+    startToken = token
+    routeByPage = usePageAgent
+  }
 
   function sendFailure(error: string): VoiceAskResponse {
     pendingSessionRequestId = null
@@ -166,6 +171,9 @@ export function useVoiceSession(config: VoiceConfig = defaultConfig) {
       payload.session_id = sessionId.value
     else
       payload.start_token = startToken
+
+    if (!routeByPage)
+      payload.route_by_page = false
 
     if (context) {
       const pageChanged = lastContext.value !== null && lastContext.value.page !== context.page

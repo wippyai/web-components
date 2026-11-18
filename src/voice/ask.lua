@@ -148,10 +148,11 @@ local function handler()
     local session_id = input.session_id and tostring(input.session_id) or nil
     local start_token = input.start_token and tostring(input.start_token) or nil
     local page_ctx = agents.validate_context(input.context)
+    local route_by_page = input.route_by_page ~= false
 
     if session_id and page_ctx and page_ctx.page then
         -- existing session: switch agent if page changed, update context
-        if input.context and input.context.agent_changed then
+        if route_by_page and input.context and input.context.agent_changed then
             local target_agent = resolve_agent_for_context(page_ctx)
             if agents.is_valid_agent(target_agent) then
                 local ok, err = session.switch_agent(hub_pid, session_id, target_agent)
@@ -169,7 +170,7 @@ local function handler()
                 logger:warn("context write failed", { error = tostring(err) })
             end
         end
-    elseif not session_id and page_ctx and page_ctx.page then
+    elseif not session_id and route_by_page and page_ctx and page_ctx.page then
         -- new session: resolve agent and pack start_token
         local target_agent = resolve_agent_for_context(page_ctx)
         logger:info("new session agent resolution", {

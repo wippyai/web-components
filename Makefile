@@ -4,17 +4,18 @@
 # To work on a single component, cd into its directory and run make there.
 #
 # Usage:
-#   make build         build all three components
-#   make lint          lint all three components
-#   make lint-fix      auto-fix lint errors in all three components
+#   make build         build all components
+#   make lint          lint all components
+#   make lint-fix      auto-fix lint errors in all components
 #   make clean         remove node_modules, dist, and public/ in all components
 #   make clean-build   clean + build
 
-MODULES := mermaid markdown chartjs voice
+MODULES := mermaid markdown chartjs echarts voice
 
 .PHONY: help build lint lint-fix clean clean-build \
         $(addprefix build-,$(MODULES)) \
         $(addprefix lint-,$(MODULES)) \
+        $(addprefix lint-fix-,$(MODULES)) \
         $(addprefix clean-,$(MODULES))
 
 help:
@@ -29,6 +30,7 @@ help:
 	@echo "  make build-mermaid    Build mermaid only"
 	@echo "  make build-markdown   Build markdown only"
 	@echo "  make build-chartjs    Build chartjs only"
+	@echo "  make build-echarts    Build echarts only"
 	@echo ""
 	@echo "  To work on a single component:"
 	@echo "    cd src/<name> && make <target>"
@@ -39,10 +41,7 @@ build: $(addprefix build-,$(MODULES))
 
 lint: $(addprefix lint-,$(MODULES))
 
-lint-fix:
-	@$(MAKE) --no-print-directory -C src/mermaid lint-fix
-	@$(MAKE) --no-print-directory -C src/markdown lint-fix
-	@$(MAKE) --no-print-directory -C src/chartjs lint-fix
+lint-fix: $(addprefix lint-fix-,$(MODULES))
 
 clean: $(addprefix clean-,$(MODULES))
 
@@ -50,11 +49,14 @@ clean-build: clean build
 
 # ── Per-module delegation ──
 
-build-%:
+$(addprefix build-,$(MODULES)): build-%:
 	@$(MAKE) --no-print-directory -C src/$* build
 
-lint-%:
+$(addprefix lint-,$(MODULES)): lint-%:
 	@$(MAKE) --no-print-directory -C src/$* lint
 
-clean-%:
+$(addprefix lint-fix-,$(MODULES)): lint-fix-%:
+	@$(MAKE) --no-print-directory -C src/$* lint-fix
+
+$(addprefix clean-,$(MODULES)): clean-%:
 	@$(MAKE) --no-print-directory -C src/$* clean

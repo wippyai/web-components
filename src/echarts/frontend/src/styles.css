@@ -1,0 +1,37 @@
+/* Pass the host's size through to the Vue mount and ECharts container. */
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+:host > div {
+  width: 100%;
+  height: 100%;
+}
+
+.echarts-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+  box-sizing: border-box;
+}
+
+.echarts-canvas-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.echarts-error {
+  padding: 12px 16px;
+  border-radius: 6px;
+  background: var(--p-content-background);
+  color: var(--p-danger-color);
+  border: 1px solid var(--p-danger-color);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+}

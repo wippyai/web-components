@@ -9,6 +9,7 @@ Independently publishable Wippy web component modules under the `wippy-swiss` or
 | [wippy-swiss/mermaid](src/mermaid/README.md) | `<wippy-mermaid>` | Mermaid diagrams rendered by Pele |
 | [wippy-swiss/markdown](src/markdown/README.md) | `<wippy-markdown>` | GitHub-Flavored Markdown to safe HTML |
 | [wippy-swiss/chartjs](src/chartjs/README.md) | `<wippy-chartjs>` | Chart.js v4 universal chart wrapper |
+| [wippy-swiss/echarts](src/echarts/README.md) | `<wippy-echarts>` | ECharts line, bar and pie charts |
 | [wippy-swiss/voice](src/voice/README.md) | `<wippy-voice-orb>` | Animated voice widget with STT and TTS |
 
 ## Local development
@@ -25,6 +26,8 @@ replacements:
     to: ../web-components/src/markdown
   - from: wippy-swiss/chartjs
     to: ../web-components/src/chartjs
+  - from: wippy-swiss/echarts
+    to: ../web-components/src/echarts
   - from: wippy-swiss/voice
     to: ../web-components/src/voice
 ```
@@ -35,6 +38,7 @@ replacements:
 cd src/mermaid/frontend && pnpm run build
 cd src/markdown/frontend && pnpm run build
 cd src/chartjs/frontend && pnpm run build
+cd src/echarts/frontend && pnpm run build
 cd src/voice/frontend && pnpm run build
 ```
 
@@ -46,6 +50,7 @@ web-components/
 │   ├── mermaid/     # _index.yaml, wippy.yaml, wippy.lock, frontend/, public/
 │   ├── markdown/    # same layout
 │   ├── chartjs/     # same layout
+│   ├── echarts/     # same layout
 │   └── voice/       # same layout + env/ sub-module + Lua backend files
 ├── wippy.lock       # root lock (src: ./src)
 └── wippy.exe        # Wippy CLI (gitignored)

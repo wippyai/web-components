@@ -14,6 +14,8 @@ import { defineConfig, devices } from '@playwright/test'
  *
  *   src/app/deps/_index.yaml must declare wc-mermaid / wc-markdown / wc-chartjs
  *   ns.dependency entries with server: app:gateway.
+ *   echarts.spec.ts also requires wc-echarts and a replacement pointing to
+ *   this worktree's src/echarts module.
  *
  * WIPPY_URL — wippy server base URL (default: http://localhost:8086)
  * USERSPACE_USER_DEFAULT_ADMIN_EMAIL / _PASSWORD — seeded admin credentials

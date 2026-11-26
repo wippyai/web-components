@@ -1,0 +1,18 @@
+organization: wippy-swiss
+module: echarts
+description: >
+  Provides the lazy <wippy-echarts> custom element for ECharts 6.1 charts from
+  a JSON option. Supports eight chart types, host theme tokens, Canvas and SVG,
+  configurable props and seven chart events. Consumers call loadByTagName.
+license: Apache-2.0
+repository: https://github.com/wippyai/web-components
+homepage: https://wippy.ai
+keywords:
+  - web-components
+  - echarts
+  - charts
+  - visualization
+embed: ["public_files"]
+exclude_meta:
+  type: [test]
+  scope: [dev]

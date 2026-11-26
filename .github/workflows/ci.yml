@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        component: [mermaid, markdown, chartjs, voice]
+        component: [mermaid, markdown, chartjs, echarts, voice]
 
     steps:
       - uses: actions/checkout@v4
@@ -37,3 +37,8 @@ jobs:
       - name: Lint
         working-directory: src/${{ matrix.component }}/frontend
         run: pnpm run lint
+
+      - name: Unit tests (ECharts)
+        if: matrix.component == 'echarts'
+        working-directory: src/echarts/frontend
+        run: pnpm run test

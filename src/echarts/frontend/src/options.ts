@@ -6,6 +6,18 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
 }
 
+export function chartLabel(label: string, json: string): string {
+  if (label.trim())
+    return label.trim()
+  const { option } = parseOptions(json)
+  const title = option?.title ?? (isObject(option?.baseOption) ? option.baseOption.title : undefined)
+  for (const item of Array.isArray(title) ? title : [title]) {
+    if (isObject(item) && typeof item.text === 'string' && item.text.trim())
+      return item.text.trim()
+  }
+  return 'Chart'
+}
+
 function safeLink(value: unknown): boolean {
   if (typeof value !== 'string')
     return false

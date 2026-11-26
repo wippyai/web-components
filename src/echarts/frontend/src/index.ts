@@ -7,7 +7,7 @@ import stylesText from './styles.css?inline'
 import pkg from '../package.json'
 
 class EChartsElement extends WippyVueElement<ComponentProps, Events> {
-  static get wippyConfig(): WippyElementConfig<ComponentProps> {
+  static get wippyConfig(): WippyElementConfig {
     return {
       propsSchema: pkg.wippy.props as WippyPropsSchema,
       hostCssKeys: ['themeConfigUrl'] as const,

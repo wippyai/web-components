@@ -147,30 +147,55 @@ test.describe('wippy-echarts', () => {
     }])
   })
 
-  test('reapplies the chart after official host theme and CSS variable changes', async () => {
-    await frame.locator('body').evaluate(async () => {
-      const name = '@wippy-fe/proxy'
-      const { host, on } = await import(name)
-      await new Promise<void>((resolve, reject) => {
-        const timer = setTimeout(() => { stop(); reject(new Error('Host theme was not applied')) }, 10_000)
-        const stop = on('@theme', (mode: string) => {
-          if (mode === 'dark') { clearTimeout(timer); stop(); resolve() }
-        })
-        host.setThemeMode('dark')
-      })
-      if (host.getThemeMode() !== 'dark') throw new Error('Host theme propagation mismatch')
-      document.querySelector('#e2e-echarts')!.setAttribute('data-test-theme', 'dark')
-    })
-    await frame.locator('#e2e-theme').evaluate(node => node.style.setProperty('--wippy-chart-1', '#123456'))
-    await expect.poll(() => frame.locator('#e2e-echarts canvas').evaluate((element) => {
+  test('reapplies the chart after palette prop and official host theme changes', async () => {
+    const chart = frame.locator('#e2e-echarts')
+    await chart.evaluate(el => el.setAttribute('palette', '["#654321"]'))
+    const hasColor = (color: number[]) => chart.locator('canvas').evaluate((element, color) => {
       const canvas = element as HTMLCanvasElement
       const pixels = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data
       for (let i = 0; i < pixels.length; i += 4) {
-        if (pixels[i] === 0x12 && pixels[i + 1] === 0x34 && pixels[i + 2] === 0x56 && pixels[i + 3] === 255)
+        if (pixels[i] === color[0] && pixels[i + 1] === color[1] && pixels[i + 2] === color[2] && pixels[i + 3] === 255)
           return true
       }
       return false
-    })).toBe(true)
+    }, color)
+    await expect.poll(() => hasColor([0x65, 0x43, 0x21])).toBe(true)
+    await chart.evaluate(el => el.setAttribute('palette', '["#123456"]'))
+    await expect.poll(() => hasColor([0x12, 0x34, 0x56])).toBe(true)
+
+    const setTheme = (mode: 'light' | 'dark') => frame.locator('body').evaluate(async (_, mode) => {
+      const name = '@wippy-fe/proxy'
+      const { host } = await import(name)
+      host.setThemeMode(mode)
+    }, mode)
+    await setTheme('light')
+    await chart.evaluate((el, option) => {
+      el.setAttribute('renderer', 'svg')
+      el.setAttribute('options', JSON.stringify({ ...option, title: { text: 'Theme probe' } }))
+    }, OPTION)
+    const title = chart.locator('svg').getByText('Theme probe', { exact: true })
+    await expect(title).toBeVisible()
+    // Resolve the host token through CSS, since the token can use any CSS colour syntax.
+    const paintedColor = () => title.evaluate(node => getComputedStyle(node).fill)
+    const matchesHostText = () => title.evaluate(node => {
+      const root = node.getRootNode() as ShadowRoot
+      const probe = document.createElement('span')
+      probe.style.color = getComputedStyle(root.host).getPropertyValue('--p-text-color').trim()
+      root.appendChild(probe)
+      const matches = getComputedStyle(node).fill === getComputedStyle(probe).color
+      probe.remove()
+      return matches
+    })
+    await expect.poll(matchesHostText).toBe(true)
+    const light = await paintedColor()
+    await setTheme('dark')
+    await expect.poll(paintedColor).not.toBe(light)
+    await expect.poll(matchesHostText).toBe(true)
+    await expect.poll(() => frame.locator('body').evaluate(async () => {
+      const name = '@wippy-fe/proxy'
+      const { host } = await import(name)
+      return host.getThemeMode()
+    })).toBe('dark')
   })
 
   test('supports SVG, themed loading state and an explicit palette', async () => {
@@ -183,9 +208,15 @@ test.describe('wippy-echarts', () => {
     const chart = frame.locator('#e2e-echarts')
     await expect(chart.locator('svg')).toHaveCount(1)
     await expect(chart.getByRole('figure')).toHaveAttribute('aria-busy', 'true')
-    await expect(chart.locator('svg')).toContainText('Please wait')
+    const loading = chart.locator('wippy-loading[no-bg]')
+    await expect(loading).toBeVisible()
+    await expect(loading).toHaveAttribute('title', 'Please wait')
+    const box = await chart.locator('.echarts-canvas-wrapper').boundingBox()
+    expect(box).not.toBeNull()
+    await expect.poll(() => loading.boundingBox()).toEqual(box)
     await chart.evaluate(el => el.setAttribute('loading', 'false'))
-    await expect(chart.locator('svg')).not.toContainText('Please wait')
+    await expect(loading).toHaveCount(0)
+    await expect(chart.getByRole('figure')).toHaveAttribute('aria-busy', 'false')
   })
 
   test('uses explicit host semantic tokens across the shadow boundary', async () => {
@@ -194,6 +225,7 @@ test.describe('wippy-echarts', () => {
       el.setAttribute('options', JSON.stringify({ ...option, title: { text: 'Token probe' } }))
       el.style.setProperty('--p-text-color', '#123456')
       el.style.setProperty('--p-text-muted-color', '#234567')
+      el.setAttribute('theme-mode', 'light')
     }, OPTION)
     const svg = frame.locator('#e2e-echarts svg')
     await expect(svg.getByText('Token probe', { exact: true })).toHaveAttribute('fill', '#123456')

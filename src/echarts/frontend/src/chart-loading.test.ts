@@ -2,7 +2,7 @@
 import { expect, it, vi } from 'vitest'
 import { getInstanceByDom } from 'echarts/core'
 import * as engine from './app/echarts'
-import { resolveProps } from './props'
+import { resolvedProps as resolveProps } from './test-props'
 import { buildTheme } from './theme'
 
 const loader = vi.hoisted(() => ({ load: vi.fn() }))
@@ -17,15 +17,18 @@ it.each([true, false])('uses only the latest full option during a deferred impor
   Object.defineProperties(container, { clientWidth: { value: 600 }, clientHeight: { value: 300 } })
   document.body.append(container)
   const emit = vi.fn()
-  const controller = createChartController(container, emit, vi.fn())
+  const loading = vi.fn()
+  const controller = createChartController(container, emit, vi.fn(), loading)
   const theme = buildTheme({ getPropertyValue: () => '', color: 'navy', fontFamily: 'sans-serif' })
   const render = (option: object) => controller.render(resolveProps({ options: JSON.stringify(option), renderer: 'svg', notMerge }), theme, true)
   try {
     const complete = render({ animation: false, title: { subtext: 'Obsolete' }, series: [{ id: 'old', type: 'pie', data: [12] }] })
     const latest = render({ animation: false, title: { text: 'Latest' }, series: [{ id: 'sales', type: 'pie', data: [34] }] })
     expect(getInstanceByDom(container)).toBeUndefined()
+    expect(loading).toHaveBeenLastCalledWith(true)
     finish(engine)
     await Promise.all([complete, latest])
+    expect(loading).toHaveBeenLastCalledWith(false)
     const chart = getInstanceByDom(container)
     if (!chart) throw new Error('Expected an initialized chart')
     const option = chart.getOption()

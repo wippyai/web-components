@@ -1,11 +1,5 @@
 import type { ComponentProps } from './types'
 
-export function booleanProp(value: unknown, fallback: boolean): boolean {
-  if (value === undefined || value === null)
-    return fallback
-  return value === true || value === '' || value === 'true'
-}
-
 export function parsePalette(json = ''): string[] | undefined {
   if (!json.trim())
     return undefined
@@ -17,18 +11,8 @@ export function parsePalette(json = ''): string[] | undefined {
 
 export function resolveProps(props: ComponentProps) {
   return {
-    options: props.options ?? '',
-    themeMode: props.themeMode ?? 'auto',
+    ...props,
     palette: parsePalette(props.palette),
-    renderer: props.renderer ?? 'canvas',
-    autoresize: booleanProp(props.autoresize, true),
-    loading: booleanProp(props.loading, false),
-    loadingText: props.loadingText ?? 'Loading…',
-    notMerge: booleanProp(props.notMerge, true),
-    lazyUpdate: booleanProp(props.lazyUpdate, false),
-    group: props.group ?? '',
-    label: props.label ?? 'Chart',
-    lazyInit: booleanProp(props.lazyInit, false),
   }
 }
 

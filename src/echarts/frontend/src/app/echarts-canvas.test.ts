@@ -4,11 +4,13 @@ import { createApp, nextTick, ref } from 'vue'
 import type { App } from 'vue'
 import { getInstanceByDom } from 'echarts/core'
 import type { ComponentProps } from '../types'
+import { componentProps } from '../test-props'
+import * as theme from '../theme'
 import EChartsCanvas from './echarts-canvas.vue'
 import './echarts'
 
 const mocks = vi.hoisted(() => ({ emit: vi.fn(), on: vi.fn() }))
-const input = ref<ComponentProps>({})
+const input = ref<ComponentProps>(componentProps())
 vi.mock('../constants', () => ({
   useComponentProps: () => input,
   useComponentEvents: () => mocks.emit,
@@ -23,6 +25,8 @@ let mount: HTMLDivElement
 let resize: () => void
 let width = 600
 let height = 300
+let schemeChanged: () => void
+let scheme: { matches: boolean, addEventListener: ReturnType<typeof vi.fn>, removeEventListener: ReturnType<typeof vi.fn> }
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -30,6 +34,8 @@ beforeEach(() => {
   mocks.on.mockReturnValue(vi.fn())
   width = 600
   height = 300
+  scheme = { matches: false, addEventListener: vi.fn((_event, callback) => { schemeChanged = callback }), removeEventListener: vi.fn() }
+  vi.stubGlobal('matchMedia', () => scheme)
   vi.stubGlobal('ResizeObserver', class {
     constructor(callback: () => void) { resize = callback }
     observe() {}
@@ -42,6 +48,46 @@ beforeEach(() => {
   document.body.append(mount)
 })
 
+it('reads tokens once for a config change and keeps data updates and idle time free of token reads', async () => {
+  const buildTheme = vi.spyOn(theme, 'buildTheme')
+  await setup(true)
+  expect(buildTheme).toHaveBeenCalledOnce()
+  input.value.options = '{"animation":false,"series":[{"type":"pie","data":[5]}]}'
+  await nextTick()
+  await vi.advanceTimersByTimeAsync(2000)
+  expect(buildTheme).toHaveBeenCalledOnce()
+  const config = mocks.on.mock.calls.find(([event]) => event === '@config')?.[1]
+  expect(config).toBeTypeOf('function')
+  config({})
+  config({})
+  await vi.advanceTimersByTimeAsync(20)
+  expect(buildTheme).toHaveBeenCalledTimes(2)
+})
+
+it('uses system preference changes only when the host and local mode are Auto', async () => {
+  const buildTheme = vi.spyOn(theme, 'buildTheme')
+  const { container } = await setup(true)
+  scheme.matches = true
+  schemeChanged()
+  await vi.advanceTimersByTimeAsync(20)
+  expect(buildTheme).toHaveBeenCalledOnce()
+  const appliedTheme = mocks.on.mock.calls.find(([event]) => event === '@theme')?.[1]
+  appliedTheme('auto')
+  await vi.advanceTimersByTimeAsync(20)
+  expect(getInstanceByDom(container)?.getOption().darkMode).toBe(true)
+  scheme.matches = false
+  schemeChanged()
+  await vi.advanceTimersByTimeAsync(20)
+  expect(getInstanceByDom(container)?.getOption().darkMode).toBe(false)
+  expect(buildTheme).toHaveBeenCalledTimes(3)
+  input.value.themeMode = 'light'
+  await nextTick()
+  scheme.matches = true
+  schemeChanged()
+  await vi.advanceTimersByTimeAsync(20)
+  expect(buildTheme).toHaveBeenCalledTimes(4)
+})
+
 afterEach(() => {
   app?.unmount()
   app = undefined
@@ -52,10 +98,10 @@ afterEach(() => {
 })
 
 async function setup(notMerge: boolean) {
-  input.value = {
+  input.value = componentProps({
     options: JSON.stringify({ animation: false, series: [{ id: 'sales', type: 'pie', data: [12] }] }),
     renderer: 'svg', notMerge,
-  }
+  })
   app = createApp(EChartsCanvas)
   app.mount(mount)
   const container = mount.querySelector<HTMLElement>('.echarts-canvas-wrapper')
@@ -90,7 +136,7 @@ describe.each([true, false])('hidden component updates with notMerge=%s', (notMe
     expect(mocks.emit).not.toHaveBeenCalledWith('chart-error', expect.anything())
   })
 
-  it('applies a host theme change received while hidden, even after theme polling', async () => {
+  it('applies a host theme change received while hidden', async () => {
     const { container, chart } = await setup(notMerge)
     height = 0
     resize()

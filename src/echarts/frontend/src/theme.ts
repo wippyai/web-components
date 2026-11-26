@@ -11,6 +11,7 @@ export function buildTheme(style: ComputedStyle, palette?: string[], dark = fals
   const text = get('--p-text-color', style.color)
   const muted = get('--p-text-muted-color', text)
   const border = get('--p-content-border-color', muted)
+  const background = get('--p-content-background', 'transparent')
   const axis = {
     nameTextStyle: { color: muted },
     axisLabel: { color: muted },
@@ -22,10 +23,10 @@ export function buildTheme(style: ComputedStyle, palette?: string[], dark = fals
     darkMode: dark,
     backgroundColor: 'transparent',
     color: palette ?? DEFAULT_PALETTE.map((color, i) => get(`--wippy-chart-${i + 1}`, color)),
-    textStyle: { color: text, fontFamily: get('--p-font-family', style.fontFamily) },
+    textStyle: { color: text, fontFamily: style.fontFamily },
     title: { textStyle: { color: text }, subtextStyle: { color: muted } },
     tooltip: {
-      backgroundColor: get('--p-content-background', 'transparent'),
+      backgroundColor: background,
       borderColor: border,
       textStyle: { color: text },
     },
@@ -38,16 +39,6 @@ export function buildTheme(style: ComputedStyle, palette?: string[], dark = fals
     bar: { label: { color: text } },
     pie: { label: { color: text }, labelLine: { lineStyle: { color: border } } },
     radar: { axisName: { color: muted }, axisLine: { lineStyle: { color: border } }, splitLine: { lineStyle: { color: border } } },
-    calendar: { itemStyle: { color: get('--p-content-background', 'transparent'), borderColor: border }, dayLabel: { color: muted }, monthLabel: { color: text }, yearLabel: { color: text } },
-  }
-}
-
-export function loadingStyle(theme: ReturnType<typeof buildTheme>, text: string) {
-  return {
-    text,
-    color: theme.color[0],
-    textColor: theme.textStyle.color,
-    maskColor: theme.tooltip.backgroundColor,
-    fontFamily: theme.textStyle.fontFamily,
+    calendar: { itemStyle: { color: background, borderColor: border }, dayLabel: { color: muted }, monthLabel: { color: text }, yearLabel: { color: text } },
   }
 }

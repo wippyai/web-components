@@ -1,7 +1,21 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { parseOptions, secureOptions, withDefaults } from './options'
+import { chartLabel, parseOptions, secureOptions, withDefaults } from './options'
 
 afterEach(() => vi.restoreAllMocks())
+
+describe('accessible figure name', () => {
+  it.each([
+    [' Revenue ', '{"title":{"text":"Other"}}', 'Revenue'],
+    ['', '{"title":{"text":"Revenue"}}', 'Revenue'],
+    [' ', '{"title":[{"text":" "},{"subtext":"No title"},{"text":" Sales "}]}', 'Sales'],
+    ['', '{"baseOption":{"title":[{"text":"Trend"}]}}', 'Trend'],
+    ['', '{"title":[{"text":null},{"text":12}]}', 'Chart'],
+    ['', '{', 'Chart'],
+    ['', '', 'Chart'],
+  ])('uses label, then the first non-empty title, then Chart', (label, options, expected) => {
+    expect(chartLabel(label, options)).toBe(expected)
+  })
+})
 
 describe('JSON option security', () => {
   it.each(['http://example.org', 'https://example.org', 'mailto:team@example.org', '/path', '../path', './path', 'path', '?a=1', '#section', '//example.org', 'HTTPS://example.org'])('retains safe links: %s', (link) => {

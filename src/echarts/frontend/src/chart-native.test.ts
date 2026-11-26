@@ -4,7 +4,7 @@ import { getInstanceByDom } from 'echarts/core'
 import type { EChartsCoreOption, EChartsType } from 'echarts/core'
 import { init } from './app/echarts'
 import { createChartController } from './chart-controller'
-import { resolveProps } from './props'
+import { resolvedProps as resolveProps } from './test-props'
 import { buildTheme } from './theme'
 
 const light = buildTheme({ getPropertyValue: () => '', color: '#111111', fontFamily: 'sans-serif' }, ['#123456'])

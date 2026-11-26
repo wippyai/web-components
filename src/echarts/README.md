@@ -1,4 +1,4 @@
-# wippy-swiss/echarts — `<wippy-echarts>`
+# wippy-swiss/echarts, `<wippy-echarts>`
 
 Renders [Apache ECharts 6.1](https://echarts.apache.org/) charts from a JSON option. ECharts is pinned to 6.1.0 and imported through `echarts/core` with explicit registrations.
 
@@ -18,6 +18,8 @@ await loadByTagName('wippy-echarts')
 
 Registration loads the small element entry. A cached dynamic import loads the separate ECharts engine chunk only when a valid chart has a nonzero container size. With `lazy-init="true"`, initialization also waits until the element is within 200px of the viewport. Without IntersectionObserver, initialization proceeds when sized. Concurrent charts share the same engine import. Disconnecting before import completion prevents initialization.
 
+The host-injected `<wippy-loading no-bg>` overlays the reserved box during the first engine load and while `loading` is true. `loading-text` supplies its title. The figure has `aria-busy="true"` while the overlay is visible. Errors use an absolute alert in the same box. Neither overlay changes its size.
+
 ## Props
 
 | Prop | Type | Default | Description |
@@ -27,21 +29,21 @@ Registration loads the small element entry. A cached dynamic import loads the se
 | `palette` | string | `""` | JSON array of color strings, such as `["#2563EB","#0D9488"]`. Overrides CSS palette slots. |
 | `renderer` | `canvas` / `svg` | `canvas` | Rendering backend. Changing it recreates the chart from the current full option and resets interaction state. |
 | `autoresize` | boolean | `true` | Resize with the container. |
-| `loading` | boolean | `false` | Show the themed ECharts loading state. |
-| `loading-text` | string | `Loading…` | Loading-state text. |
+| `loading` | boolean | `false` | Show the platform loading overlay inside the chart box. |
+| `loading-text` | string | `Loading…` | Platform loader title, including during the first engine load. |
 | `not-merge` | boolean | `true` | How to apply a new full option to the live chart. True replaces; false uses native ECharts merge. |
 | `lazy-update` | boolean | `false` | Defer the option update until the next animation frame. |
 | `group` | string | `""` | ECharts connect group id. Empty removes group membership. |
-| `label` | string | `Chart` | Accessible name of the chart figure. |
+| `label` | string | `""` | Accessible figure name. Empty uses the first non-empty option title text, then `Chart`. |
 | `lazy-init` | boolean | `false` | Wait near the viewport before loading and initializing the engine. |
 
 **Notes:**
 
-- `options` must be a JSON object. Invalid options or palette JSON, import failures and initialization errors show an inline alert and emit `chart-error`. JSON strings are never evaluated as functions or code. Use the built-in declarative formatters below for formatting callbacks. Extensions cannot be passed through JSON.
-- The element is a block. Give it or its container a height, for example `style="height:300px"`. The chart fills the container, with the same 200px minimum as chartjs, and a ResizeObserver resizes it.
+- `options` must be a JSON object. Invalid options or palette JSON, import failures and initialization errors show an overlay alert and emit `chart-error`. JSON strings are never evaluated as functions or code. Use the built-in declarative formatters below for formatting callbacks. Extensions cannot be passed through JSON.
+- The chart fills the height its container gives it; without a container height, it keeps a 2:1 shape. Set `height` or `aspect-ratio` on the element to change it.
 - `options` is always the complete desired chart option, following the vue-echarts contract. Every update must include the axes, series, datasets and other settings needed to initialize a fresh chart. The element does not retain patches or construct a merged caller option. Pending updates before the engine loads, visibility or size allow rendering use only the latest full option, in both modes.
 - Each changed `options` string calls `setOption` with the sanitized full option. The default `not-merge="true"` passes `{ notMerge: true, lazyUpdate }`. With `not-merge="false"`, it passes `{ notMerge: false, lazyUpdate }`, which uses ECharts' native merge so data updates can animate and user zoom and legend selection can persist. Omit explicit zoom ranges and legend selections when the engine should keep the user's choices; supplying them applies those settings again. Repeated identical input is ignored; changing `not-merge` reapplies the current input.
-- Native merge can keep components omitted from a later full option. To remove old series or settings reliably, use `not-merge="true"`. `replaceMerge` is not exposed as a prop or `setOption` argument. Empty input means `{}` and clears a chart only in replacement mode. Disconnect disposes the chart and releases observers, timers and host subscriptions.
+- Native merge can keep components omitted from a later full option. To remove old series or settings reliably, use `not-merge="true"`. `replaceMerge` is not exposed as a prop or `setOption` argument. Empty input means `{}` and clears a chart only in replacement mode. Disconnect disposes the chart and releases observers and host subscriptions.
 - Boolean HTML attributes use the Wippy prop bridge. Use `autoresize="false"` or `not-merge="false"` to disable a default-true setting; removing the attribute restores its declared default.
 - Escape inner quotes when embedding JSON in HTML attributes. Only the listed chart types and components are included.
 - Tooltips always use ECharts `richText`, including nested series and data-item tooltips. A caller's `renderMode: "html"` is overridden. Templates and names remain text, so HTML tags and event handlers cannot become DOM elements. HTML markup in templates is displayed as text. Tooltip colors and fonts still use the host theme.
@@ -86,19 +88,19 @@ The tooltip header displays a locale date such as `11/20/2026`, without `00:00:0
 
 ## Theme
 
-The shadow root requests `themeConfigUrl`. Text uses `--p-text-color`, muted text uses `--p-text-muted-color`, borders and axes use `--p-content-border-color`, and tooltip, calendar and loading surfaces use `--p-content-background`. The chart background is transparent. Font family uses `--p-font-family` when supplied, then the computed font. Values are read from the custom element host so explicit token overrides survive inner theme-root defaults. The component does not redefine host tokens or toggle theme classes.
+The shadow root requests `themeConfigUrl`. Text uses `--p-text-color`, muted text uses `--p-text-muted-color`, borders and axes use `--p-content-border-color`, and tooltip and calendar surfaces use `--p-content-background`. The chart background is transparent. Font family uses only the host's computed font. Values are read from the custom element host so explicit token overrides survive inner theme-root defaults. The component does not redefine host tokens or toggle theme classes.
 
 Palette precedence is an explicit `palette` JSON array, then each resolved `--wippy-chart-1` through `--wippy-chart-8` slot, then the fallback for each unset slot. The fallback is decorative category coding with no severity meaning and is shared by both modes:
 
 `#2563EB`, `#0D9488`, `#7C3AED`, `#DB2777`, `#0891B2`, `#65A30D`, `#9333EA`, `#D55E00`.
 
-The final slot is [Okabe–Ito vermillion](https://jfly.uni-koeln.de/color/), replacing slate grey. Its contrast is 3.87:1 on white and 4.48:1 on `#1c1a19`. The first three colors remain blue, teal and violet. Use labels or patterns alongside color when series must be distinguished without color vision.
+The final slot is [Okabe-Ito vermillion](https://jfly.uni-koeln.de/color/). Its contrast is 3.87:1 on white and 4.48:1 on `#1c1a19`. The first three colors are blue, teal and violet. Use labels or patterns alongside color when series must be distinguished without color vision.
 
 Auto reads `host.getThemeMode()` and subscribes to the official `@theme` event. The Wippy base owns theme application to the element and its inner theme root. Operating-system changes apply when the host is in Auto. Application-wide changes use `host.setThemeMode('auto' | 'light' | 'dark')` from `@wippy-fe/proxy`.
 
 Resolved theme token or palette changes dispose the chart, initialize a new instance with the new theme, and apply the current full option once. Series and text colors follow the new theme, and explicit caller colors remain authoritative. The element never restores a theme-resolved `getOption()` snapshot.
 
-Attribute and stylesheet DOM changes are observed; a one-second comparison also catches CSSOM and adopted stylesheet changes without DOM mutations. Equal theme values do not update the chart. The local `theme-mode` override changes ECharts' `darkMode` contrast behavior, not the host's tokens or application-wide mode.
+The component reads resolved tokens once per host `@theme` or `@config` change, or local `palette` or `theme-mode` change. It listens to system color preference changes only when both host and component use Auto. It uses no theme mutation observers or polling. Custom CSS and variable updates must follow the host configuration event path. Equal theme values do not recreate the chart. The local `theme-mode` override changes ECharts' `darkMode` contrast behavior, not the host's tokens or application-wide mode.
 
 Theme and renderer changes deliberately reset user interaction state, including zoom and legend selection, to the current full option's settings in both merge modes. Theme switches are expected to be rare, user-initiated actions. Pie selection, highlights, transient tooltips and media effects accumulated through earlier resizing also reset. Media queries are evaluated afresh at the current container size. Recreation can restart animations and emit rendering events. Error recovery and reconnection also initialize from the current full option. `lazy-update` is honored for initialization and live updates.
 
@@ -123,10 +125,12 @@ Defaults are applied to every full option, inside `baseOption` when present or a
 | `chart-hover` | Same data detail | Mouseover on a data element. |
 | `legend-change` | `{ selected: Record<string, boolean> }` | Legend selection changes. |
 | `datazoom` | `{ start: number \| null, end: number \| null }` | First affected zoom range, in percent. A value-based action that omits percentages produces null fields. |
-| `chart-rendered` | `{}` | ECharts `finished`, after animations, progressive rendering and lazy updates finish. |
+| `chart-rendered` | `{}` | The next ECharts `finished` after a requested option update or recreation, once animations, progressive rendering and lazy updates finish. Hover and resize redraws alone emit nothing. |
 | `chart-error` | `{ message: string }` | JSON parse, engine import or chart initialization error. |
 
 Every event bubbles and is composed, so listeners outside the shadow root receive it. Pointer event detail matches `<wippy-chartjs>`. `label` is the category or x value as text. `datasetLabel` is the series name, and `datasetIndex` is the series index. `dataIndex` is the index within that series. `value` is the raw data point or dataset row, including the whole object when one was provided. The Wippy base also emits its standard lifecycle events.
+
+Pending option updates coalesce until the next `finished` event, which emits `chart-rendered` once and clears the pending request. Repeated identical options and loading-only changes do not request a render.
 
 The canvas data elements have no keyboard interaction. A page that acts on `chart-click` should offer the same action through a keyboard control, such as a select. Aria descriptions are enabled by default.
 
@@ -140,15 +144,12 @@ el.addEventListener('chart-click', (e) => {
 
 ```html
 <wippy-echarts
-  style="height:300px"
-  options='{"tooltip":{},"legend":{},"xAxis":{"type":"category","data":["Q1","Q2","Q3","Q4"]},"yAxis":{},"series":[{"type":"bar","name":"Revenue","data":[12,19,7,22]}]}' />
+  options='{"tooltip":{},"legend":{},"xAxis":{"type":"category","data":["Q1","Q2","Q3","Q4"]},"yAxis":{},"series":[{"type":"bar","name":"Revenue","data":[12,19,7,22]}]}'></wippy-echarts>
 
 <wippy-echarts
-  style="height:300px"
   options='{"xAxis":{"type":"category","data":["Jan","Feb","Mar"]},"yAxis":{},"series":[{"type":"line","name":"Users","data":[100,150,180]}]}' />
 
 <wippy-echarts
-  style="height:300px"
   options='{"tooltip":{},"legend":{},"series":[{"type":"pie","radius":["40%","70%"],"data":[{"name":"Chrome","value":63},{"name":"Safari","value":18},{"name":"Other","value":19}]}]}' />
 ```
 
@@ -180,7 +181,7 @@ Measured with Node `gzipSync`, each file compressed independently, in the produc
 
 | Chunk | Raw bytes | Gzip bytes |
 | --- | ---: | ---: |
-| Element entry `index.js` | 38,935 | 12,265 |
+| Element entry `index.js` | 38,936 | 12,287 |
 | Lazy ECharts engine | 1,075,722 | 296,758 |
 
 The lazy engine includes the registered chart types, components and declarative formatter support. Formatter resolution and ECharts time utilities remain behind the dynamic import. Adding chart types or components requires a new size measurement.

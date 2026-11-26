@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { getInstanceByDom } from 'echarts/core'
 import type { EChartsCoreOption, EChartsType } from 'echarts/core'
 import { createChartController } from './chart-controller'
-import { resolveProps } from './props'
+import { resolvedProps as resolveProps } from './test-props'
 import { buildTheme } from './theme'
 // Load registrations before test timing starts; every test still uses the real
 // controller, dynamic loader, engine, SVG renderer and tooltip implementation.

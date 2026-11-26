@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildTheme, DEFAULT_PALETTE, loadingStyle } from './theme'
+import { buildTheme, DEFAULT_PALETTE } from './theme'
 
 function style(values: Record<string, string> = {}) {
   return { getPropertyValue: (key: string) => values[key] ?? '', fontFamily: 'Test Font, sans-serif', color: 'rgb(10, 20, 30)' }
@@ -53,7 +53,7 @@ describe('buildTheme', () => {
     expect(buildTheme(style({ '--wippy-chart-1': 'navy' }), ['orange', 'teal']).color).toEqual(['orange', 'teal'])
   })
 
-  it('uses host surfaces and fonts for tooltip, calendar and loading in both modes', () => {
+  it('uses host surfaces and the computed font in both modes', () => {
     for (const dark of [false, true]) {
       const theme = buildTheme(style({ '--p-content-background': 'surface', '--p-text-color': 'text',
         '--p-text-muted-color': 'muted', '--p-content-border-color': 'border', '--p-font-family': 'Host Font' }), undefined, dark)
@@ -61,7 +61,7 @@ describe('buildTheme', () => {
       expect(theme.tooltip).toEqual({ backgroundColor: 'surface', borderColor: 'border', textStyle: { color: 'text' } })
       expect(theme.calendar.itemStyle).toEqual({ color: 'surface', borderColor: 'border' })
       expect(theme.radar.axisName.color).toBe('muted')
-      expect(loadingStyle(theme, 'Wait')).toEqual({ text: 'Wait', color: DEFAULT_PALETTE[0], textColor: 'text', maskColor: 'surface', fontFamily: 'Host Font' })
+      expect(theme.textStyle.fontFamily).toBe('Test Font, sans-serif')
     }
   })
 })

@@ -1,21 +1,34 @@
-import { describe, expect, it } from 'vitest'
-import { booleanProp, parsePalette, resolveProps } from './props'
+// @vitest-environment happy-dom
+import { describe, expect, it, vi } from 'vitest'
+import { parseProps } from '@wippy-fe/webcomponent-core'
+import type { WippyPropsSchema } from '@wippy-fe/webcomponent-core'
+import pkg from '../package.json'
+import type { ComponentProps } from './types'
+import { parsePalette, resolveProps } from './props'
+
+vi.hoisted(() => {
+  // The real core is external to Vitest and imports the real proxy entry.
+  Object.assign(window, { __WIPPY_APP_API__: {}, __WIPPY_APP_CONFIG__: {} })
+})
 
 describe('props', () => {
-  it('resolves every default', () => {
-    expect(resolveProps({})).toEqual({ options: '', themeMode: 'auto', palette: undefined,
-      renderer: 'canvas', autoresize: true, loading: false, loadingText: 'Loading…',
-      notMerge: true, lazyUpdate: false, group: '', label: 'Chart', lazyInit: false })
+  function parsed(attributes: Record<string, string> = {}) {
+    const element = document.createElement('div')
+    for (const [key, value] of Object.entries(attributes))
+      element.setAttribute(key, value)
+    const result = parseProps(element, pkg.wippy.props as WippyPropsSchema)
+    expect(result.errors).toEqual([])
+    return result.props as unknown as ComponentProps
+  }
+  it('preserves schema defaults supplied by the platform', () => {
+    const props = parsed()
+    expect(props).toMatchObject({ autoresize: true, loading: false, notMerge: true, lazyUpdate: false, label: '' })
+    expect(resolveProps(props)).toEqual({ ...props, palette: undefined })
   })
-  it.each([true, '', 'true'])('parses true %s', value => expect(booleanProp(value, false)).toBe(true))
-  it.each([false, 'false'])('parses false %s', value => expect(booleanProp(value, true)).toBe(false))
-  it('uses defaults only for absent values', () => {
-    expect(booleanProp(undefined, true)).toBe(true)
-    expect(booleanProp(null, false)).toBe(false)
-    expect(resolveProps({ renderer: 'svg', autoresize: false, loading: true, themeMode: 'dark',
-      loadingText: 'Wait', notMerge: false, lazyUpdate: true, group: 'shared', label: 'Revenue', lazyInit: true }))
-      .toMatchObject({ renderer: 'svg', autoresize: false, loading: true, themeMode: 'dark',
-        loadingText: 'Wait', notMerge: false, lazyUpdate: true, group: 'shared', label: 'Revenue', lazyInit: true })
+  it.each(['', 'true', 'false'])('consumes platform booleans for attribute %s', value => {
+    const props = parsed({ autoresize: value, loading: value, 'not-merge': value, 'lazy-update': value, 'lazy-init': value })
+    expect(resolveProps(props)).toMatchObject({ autoresize: value !== 'false', loading: value !== 'false',
+      notMerge: value !== 'false', lazyUpdate: value !== 'false', lazyInit: value !== 'false' })
   })
   it('parses palette JSON without evaluating strings', () => {
     expect(parsePalette()).toBeUndefined()

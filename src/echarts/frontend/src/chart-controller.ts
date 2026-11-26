@@ -5,13 +5,12 @@ import { loadECharts } from './loader'
 import { toClickDetail } from './click-detail'
 import { legendDetail, zoomDetail } from './event-detail'
 import { parseOptions, secureOptions, withDefaults } from './options'
-import { loadingStyle } from './theme'
 import type { buildTheme } from './theme'
 
 type Emit = <K extends keyof Events>(event: K, detail: Events[K]) => void
 type Theme = ReturnType<typeof buildTheme>
 
-export function createChartController(container: HTMLElement, emit: Emit, error: (message: string | null) => void) {
+export function createChartController(container: HTMLElement, emit: Emit, error: (message: string | null) => void, loading: (pending: boolean) => void = () => {}) {
   let chart: EChartsType | undefined
   let runtime: Awaited<ReturnType<typeof loadECharts>> | undefined
   let stopped = false
@@ -22,8 +21,10 @@ export function createChartController(container: HTMLElement, emit: Emit, error:
   let lastJSON: string | undefined
   let lastNotMerge: boolean | undefined
   let pendingRender = false
+  let renderRequested = false
 
   function dispose() {
+    renderRequested = false
     chart?.dispose()
     chart = undefined
   }
@@ -31,6 +32,7 @@ export function createChartController(container: HTMLElement, emit: Emit, error:
   function fail(cause: unknown) {
     revision++
     pendingRender = false
+    loading(false)
     dispose()
     const message = cause instanceof Error ? cause.message : String(cause)
     error(message)
@@ -48,8 +50,12 @@ export function createChartController(container: HTMLElement, emit: Emit, error:
         return
       }
       error(null)
+      if (!chart)
+        loading(true)
       try {
-        if ((props.lazyInit && !visible) || !container.clientWidth || !container.clientHeight)
+        if (!container.clientWidth || !container.clientHeight)
+          return
+        if (props.lazyInit && !visible)
           return
         runtime ??= await loadECharts()
         if (stopped || current !== revision)
@@ -77,12 +83,18 @@ export function createChartController(container: HTMLElement, emit: Emit, error:
           }
           chart.on('legendselectchanged', event => emit('legend-change', legendDetail(event)))
           chart.on('datazoom', event => emit('datazoom', zoomDetail(event)))
-          chart.on('finished', () => emit('chart-rendered', {}))
+          chart.on('finished', () => {
+            if (renderRequested) {
+              renderRequested = false
+              emit('chart-rendered', {})
+            }
+          })
         }
         chart.group = props.group
         if (props.group)
           runtime.connect(props.group)
         if (initialized || lastJSON !== props.options || lastNotMerge !== props.notMerge) {
+          renderRequested = true
           chart.setOption(runtime.withFormatters(secureOptions(withDefaults(parsed.option))), {
             notMerge: props.notMerge,
             lazyUpdate: props.lazyUpdate,
@@ -90,10 +102,7 @@ export function createChartController(container: HTMLElement, emit: Emit, error:
           lastJSON = props.options
           lastNotMerge = props.notMerge
         }
-        if (props.loading)
-          chart.showLoading('default', loadingStyle(theme, props.loadingText))
-        else
-          chart.hideLoading()
+        loading(false)
         pendingRender = false
       }
       catch (cause) {
@@ -109,6 +118,7 @@ export function createChartController(container: HTMLElement, emit: Emit, error:
       stopped = true
       revision++
       pendingRender = false
+      loading(false)
       dispose()
       lastJSON = undefined
       lastNotMerge = undefined

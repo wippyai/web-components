@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => ({
   // checks at build time while keeping build:debug in development mode.
   define: { 'process.env.NODE_ENV': JSON.stringify(mode === 'development' ? 'development' : 'production') },
   plugins: [
-    vue(),
+    vue({ template: { compilerOptions: { isCustomElement: tag => tag === 'wippy-loading' } } }),
     wippyComponentPlugin(),
   ],
   build: {

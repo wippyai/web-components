@@ -1,12 +1,12 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createChartController } from './chart-controller'
-import { resolveProps } from './props'
+import { resolvedProps as resolveProps } from './test-props'
 import { buildTheme } from './theme'
 
 const mocks = vi.hoisted(() => ({
   init: vi.fn(), connect: vi.fn(),
   handlers: new Map<string, (event: unknown) => void>(),
-  chart: { on: vi.fn(), dispose: vi.fn(), setOption: vi.fn(), resize: vi.fn(), showLoading: vi.fn(), hideLoading: vi.fn(), group: '' },
+  chart: { on: vi.fn(), dispose: vi.fn(), setOption: vi.fn(), resize: vi.fn(), group: '' },
 }))
 // Mock the module behind the actual dynamic import, rather than bypassing the loader.
 vi.mock('./app/echarts', async () => ({ init: mocks.init, connect: mocks.connect, withFormatters: (await import('./formatters')).withFormatters }))
@@ -18,10 +18,10 @@ function fire(name: string, value: unknown) {
     throw new Error(`Missing chart handler: ${name}`)
   handler(value)
 }
-function setup(width = 600) {
+function setup(width = 600, height = 300) {
   const emit = vi.fn()
   const error = vi.fn()
-  const container = { clientWidth: width, clientHeight: 300 } as HTMLElement
+  const container = { clientWidth: width, clientHeight: height } as HTMLElement
   return { controller: createChartController(container, emit, error), emit, error, container }
 }
 
@@ -31,6 +31,8 @@ beforeEach(() => {
   mocks.chart.on.mockImplementation((name, callback) => mocks.handlers.set(name, callback))
   mocks.init.mockReturnValue(mocks.chart)
 })
+
+afterEach(() => vi.restoreAllMocks())
 
 describe('lazy chart controller', () => {
   it('replaces declarative callbacks before setOption', async () => {
@@ -89,20 +91,38 @@ describe('lazy chart controller', () => {
     controller.fail(new Error('bad palette'))
     expect(emit).toHaveBeenLastCalledWith('chart-error', { message: 'bad palette' })
   })
-  it('passes renderer, loading, merge, update and connect settings', async () => {
+  it('passes renderer, merge, update and connect settings', async () => {
     const { controller } = setup()
     const props = resolveProps({ renderer: 'svg', loading: true, loadingText: 'Wait', group: 'linked', notMerge: false, lazyUpdate: true })
     await controller.render(props, theme, true)
     expect(mocks.init).toHaveBeenCalledWith(expect.anything(), theme, { renderer: 'svg' })
     expect(mocks.chart.setOption).toHaveBeenLastCalledWith(expect.anything(), { notMerge: false, lazyUpdate: true })
-    expect(mocks.chart.showLoading).toHaveBeenCalledWith('default', expect.objectContaining({ text: 'Wait', textColor: 'navy' }))
     expect(mocks.connect).toHaveBeenCalledWith('linked')
     expect(mocks.chart.group).toBe('linked')
     await controller.render({ ...props, group: '', loading: false }, theme, true)
     expect(mocks.chart.group).toBe('')
-    expect(mocks.chart.hideLoading).toHaveBeenCalled()
     controller.resize()
     expect(mocks.chart.resize).toHaveBeenCalledOnce()
+  })
+  it('emits completion once per requested render, excluding hover and resize redraws', async () => {
+    const { controller, emit } = setup()
+    const props = resolveProps({})
+    await controller.render(props, theme, true)
+    fire('finished', {})
+    fire('mouseover', { componentType: 'legend' })
+    fire('finished', {})
+    controller.resize()
+    fire('finished', {})
+    await controller.render(props, theme, true)
+    fire('finished', {})
+    expect(emit.mock.calls.filter(([name]) => name === 'chart-rendered')).toHaveLength(1)
+    await controller.render({ ...props, options: '{"title":{"text":"New"}}' }, theme, true)
+    fire('finished', {})
+    fire('finished', {})
+    expect(emit.mock.calls.filter(([name]) => name === 'chart-rendered')).toHaveLength(2)
+    await controller.render(props, { ...theme, darkMode: true }, true)
+    fire('finished', {})
+    expect(emit.mock.calls.filter(([name]) => name === 'chart-rendered')).toHaveLength(3)
   })
   it('applies the current full option once when the theme changes', async () => {
     const { controller } = setup()

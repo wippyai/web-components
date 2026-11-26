@@ -29,7 +29,7 @@ test.describe('wippy-echarts', () => {
     })
     await expect.poll(() => frame.locator('body').evaluate(() =>
       typeof customElements.get('wippy-echarts') === 'function'), { timeout: 15_000 }).toBe(true)
-    await frame.locator('body').evaluate((option) => {
+    await frame.locator('body').evaluate((_, option) => {
       const wrapper = document.createElement('div')
       wrapper.id = 'e2e-theme'
       const el = document.createElement('wippy-echarts')
@@ -230,7 +230,7 @@ test.describe('wippy-echarts', () => {
   })
 
   test('waits near the viewport when lazy-init is true', async () => {
-    await frame.locator('body').evaluate((option) => {
+    await frame.locator('body').evaluate((_, option) => {
       const el = document.createElement('wippy-echarts')
       el.id = 'e2e-lazy-chart'
       el.style.cssText = 'display:block;width:600px;height:300px;margin-top:3000px'

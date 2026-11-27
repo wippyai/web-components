@@ -5,6 +5,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.3.0](https://github.com/wippyai/web-components/compare/v0.2.0...v0.3.0) (2026-11-27)
+
+
+### Features
+
+* **echarts:** $seriesColor, $seriesGradient and $themeColor markers (EE2-2927) ([cf2e6c8](https://github.com/wippyai/web-components/commit/cf2e6c8402a057fa7994a608bd37923cbf6d6541))
+* **echarts:** add wippy-swiss/echarts with the &lt;wippy-echarts&gt; element ([a666087](https://github.com/wippyai/web-components/commit/a666087d7528b9717f6081c4fdcf6e1ff91aff14))
+* **echarts:** add wippy-swiss/echarts with the &lt;wippy-echarts&gt; element (EE2-2927) ([53e95c0](https://github.com/wippyai/web-components/commit/53e95c0e42793bf17f4cc724646471d2676ab347))
+
+
+### Bug Fixes
+
+* **echarts:** ship runtime licences; markers keep data and match series paint (EE2-2927) ([dab7123](https://github.com/wippyai/web-components/commit/dab7123458c7f1c095909c2912b5230a645acc68))
+
 ## [0.2.0](https://github.com/wippyai/web-components/compare/v0.1.0...v0.2.0) (2026-11-18)
 
 

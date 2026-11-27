@@ -1,0 +1,67 @@
+import { readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
+import { dirname, resolve } from 'node:path'
+import vue from '@vitejs/plugin-vue'
+import { wippyComponentPlugin } from '@wippy-fe/vite-plugin'
+import { defineConfig } from 'vite'
+
+export default defineConfig(({ mode }) => ({
+  // This library is executed directly in a browser, without a consumer bundler.
+  // Vite preserves dependency process.env checks in lib mode. Resolve ECharts'
+  // checks at build time while keeping build:debug in development mode.
+  define: { 'process.env.NODE_ENV': JSON.stringify(mode === 'development' ? 'development' : 'production') },
+  plugins: [
+    vue({ template: { compilerOptions: { isCustomElement: tag => tag === 'wippy-loading' } } }),
+    wippyComponentPlugin(),
+    {
+      name: 'runtime-licenses',
+      generateBundle() {
+        const require = createRequire(import.meta.url)
+        const engineManifest = require.resolve('echarts/package.json')
+        const engineRequire = createRequire(engineManifest)
+        const packages = [
+          [dirname(engineManifest), 'echarts', ['LICENSE', 'NOTICE', 'licenses/LICENSE-d3']],
+          [dirname(engineRequire.resolve('zrender/package.json')), 'zrender', ['LICENSE']],
+          [dirname(engineRequire.resolve('tslib')), 'tslib', ['LICENSE.txt', 'CopyrightNotice.txt']],
+        ] as const
+        for (const [directory, name, files] of packages) {
+          for (const file of files)
+            this.emitFile({ type: 'asset', fileName: `licenses/${name}/${file}`, source: readFileSync(resolve(directory, file)) })
+        }
+      },
+    },
+  ],
+  build: {
+    target: 'esnext',
+    lib: {
+      entry: resolve(__dirname, 'src/index.ts'),
+      name: 'ECharts',
+      fileName: 'index',
+      formats: ['es'],
+    },
+    rollupOptions: {
+      input: {
+        index: resolve(__dirname, 'src/index.ts'),
+      },
+      external: [
+        'vue',
+        'pinia',
+
+        '@iconify/vue',
+        '@wippy-fe/proxy',
+      ],
+      output: {
+        entryFileNames: '[name].js',
+        chunkFileNames: '[name]-[hash].js',
+        assetFileNames: '[name]-[hash][extname]',
+      },
+      // src/index.ts calls `define(import.meta.url, …)`; if that statement
+      // gets moved into a sub-chunk, `import.meta.url` resolves to the
+      // sub-chunk URL — which lacks the `?declare-tag=` query the autoload
+      // script appends to the entry — and registration silently no-ops.
+      preserveEntrySignatures: false,
+    },
+    emptyOutDir: true,
+    sourcemap: false,
+  },
+}))

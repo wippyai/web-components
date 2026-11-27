@@ -1,0 +1,240 @@
+version: "1.0"
+namespace: wippy-swiss.echarts
+
+entries:
+  - name: definition
+    kind: ns.definition
+    readme: file://README.md
+    meta:
+      title: ECharts Web Component
+      description: |
+        Provides the <wippy-echarts> custom element. Drop into any app via
+        `ns.dependency`, wire the `server` requirement to your gateway, and
+        consumers call loadByTagName('wippy-echarts') to register the tag lazily.
+
+        Renders ECharts 6.1 charts from a JSON option; the engine loads on first render.
+        Text, axes, borders and categorical colors follow the host CSS.
+        Part of the wippy-swiss collection.
+
+  - name: server
+    kind: ns.requirement
+    meta:
+      description: The http.service entry that hosts this module's static bundle, typically your app's gateway.
+    targets:
+      - entry: wippy-swiss.echarts:static
+        path: .meta.server
+
+  - name: public_files
+    kind: fs.directory
+    meta:
+      comment: Built echarts web component bundle
+    directory: ./public/
+    mode: "0755"
+
+  - name: static
+    kind: http.static
+    meta:
+      comment: Serves echarts web component bundle
+      server: server
+    fs: public_files
+    directory: /
+    path: /@static-wippy-swiss/echarts
+    options:
+      mime_types:
+        .js: application/javascript
+        .css: text/css
+        .map: application/json
+
+  - name: wippy-echarts
+    kind: registry.entry
+    meta:
+      type: view.component
+      name: wippy-echarts
+      title: ECharts
+      tag_name: wippy-echarts
+      entry_point: index.js
+      announced: true
+      secure: false
+      auto_register: false
+      url: /@static-wippy-swiss/echarts
+      description: |
+        Renders ECharts 6.1 line, bar, pie, scatter, heatmap, funnel, gauge and radar
+        charts from the complete JSON option in options. Includes grid, tooltip, legend,
+        dataset, aria, title, dataZoom, marks, visualMap, calendar and radar coordinates.
+        Canvas and SVG are supported. Maps, graph, sankey and toolbox are excluded.
+
+        Await loadByTagName('wippy-echarts') from @wippy-fe/proxy before use.
+        The registry announces the tag with auto_register=false. A cached dynamic
+        engine chunk loads for the first valid, sized render. lazy-init also waits
+        until within 200px of the viewport. The chart fills the height its container
+        gives it; without a container height, it keeps a 2:1 shape. Set height or
+        aspect-ratio on the element to change it. Loading and errors overlay the
+        chart box. loading-text supplies the wippy-loading title.
+
+        options is always a full option, including with not-merge=false. Replacement
+        is the default. Native merge retains interaction state unless options override
+        it. Theme, palette and renderer changes recreate from the current full option
+        and reset interaction state. Only the latest option is used during loading.
+        JSON functions never execute; use declarative $format descriptors instead.
+        Tooltips use richText. Links allow HTTP, HTTPS, mailto and relative URLs.
+
+        Text, borders and surfaces use host tokens; fonts use the host's computed font.
+        Palette precedence is palette JSON, --wippy-chart-1 through --wippy-chart-8,
+        then the documented categorical fallback. Auto follows host.getThemeMode(),
+        @theme and @config. System preference changes apply only in Auto.
+
+        label names the figure, followed by the first non-empty option title, then Chart.
+        autoresize, loading, not-merge, lazy-update and group control rendering.
+        chart-click, chart-dblclick and chart-hover emit
+        {label,datasetLabel,datasetIndex,dataIndex,value}. legend-change emits {selected},
+        datazoom emits {start,end}, and chart-error emits {message} with an alert.
+        chart-rendered emits {} once the next finished event completes a requested
+        option update or recreation, after animations, progressive rendering and lazy
+        updates. Hover and resize redraws alone do not emit it. All events bubble and
+        are composed. Aria descriptions default on; consumers supply keyboard actions.
+
+        Example:
+
+        <wippy-echarts
+          label="Share"
+          options='{"series":[{"type":"pie","data":[{"name":"A","value":1}]}]}'></wippy-echarts>
+      props:
+        type: "object"
+        properties:
+          options:
+            type: "string"
+            default: ""
+            description: 'Complete desired ECharts option as JSON, including with not-merge=false. Empty means {}. Formatter callbacks accept {$format: spec}: number, number:0..20, compact, percent, integer, date, datetime, month or time:<template>. Colours accept $seriesColor with alpha, $seriesGradient with from/to/direction, or $themeColor with text/muted/border/surface and optional alpha. Example: {"series":[{"type":"line","data":[1,2],"areaStyle":{"color":{"$seriesGradient":{"from":0.35,"to":0}}}}]}. Alpha must be 0 to 1. Colours resolve again on theme or palette changes. Invalid markers warn and use defaults. JSON never executes.'
+          theme-mode:
+            type: "string"
+            default: "auto"
+            description: "Auto follows the host theme mode; light/dark override ECharts contrast mode locally. Resolved host tokens remain authoritative."
+            enum: ["auto","light","dark"]
+          palette:
+            type: "string"
+            default: ""
+            description: "JSON array of color strings. Overrides --wippy-chart-1..8 and the documented fallback palette. Empty uses CSS colors."
+          renderer:
+            type: "string"
+            default: "canvas"
+            description: "ECharts rendering backend. Changing it disposes and recreates from the current full option, resetting zoom, legend selection and other interaction state."
+            enum: ["canvas","svg"]
+          autoresize:
+            type: "boolean"
+            default: true
+            description: "Resize with the container using ResizeObserver."
+          loading:
+            type: "boolean"
+            default: false
+            description: "Show the platform wippy-loading overlay inside the reserved chart box."
+          loading-text:
+            type: "string"
+            default: "Loading…"
+            description: "Title of the platform loading overlay, including during the first engine load."
+          not-merge:
+            type: "boolean"
+            default: true
+            description: "Controls how a new full option is applied to the live chart. True replaces (default); false uses native ECharts merge for data animation and retained zoom/legend state unless explicitly overridden. Never enables patch input."
+          lazy-update:
+            type: "boolean"
+            default: false
+            description: "Defer the ECharts option update until the next animation frame."
+          group:
+            type: "string"
+            default: ""
+            description: "ECharts connect group id. Empty disables group membership."
+          label:
+            type: "string"
+            default: ""
+            description: "Accessible figure name. Empty uses the first non-empty option title text, then Chart."
+          lazy-init:
+            type: "boolean"
+            default: false
+            description: "Wait until within 200px of the viewport before loading ECharts and initializing. Falls back to immediate initialization without IntersectionObserver."
+      events:
+        type: "object"
+        properties:
+          chart-click:
+            type: "object"
+            description: "Data element event; empty space emits nothing. Bubbles and is composed."
+            properties:
+              label:
+                type: "string"
+                description: "Category or x value as text."
+              datasetLabel:
+                type: "string"
+                description: "Series name."
+              datasetIndex:
+                type: "number"
+                description: "Series index."
+              dataIndex:
+                type: "number"
+                description: "Index within the series."
+              value:
+                description: "Raw data point or dataset row, matching wippy-chartjs."
+          chart-dblclick:
+            type: "object"
+            description: "Data element event; empty space emits nothing. Bubbles and is composed."
+            properties:
+              label:
+                type: "string"
+                description: "Category or x value as text."
+              datasetLabel:
+                type: "string"
+                description: "Series name."
+              datasetIndex:
+                type: "number"
+                description: "Series index."
+              dataIndex:
+                type: "number"
+                description: "Index within the series."
+              value:
+                description: "Raw data point or dataset row, matching wippy-chartjs."
+          chart-hover:
+            type: "object"
+            description: "Data element event; empty space emits nothing. Bubbles and is composed."
+            properties:
+              label:
+                type: "string"
+                description: "Category or x value as text."
+              datasetLabel:
+                type: "string"
+                description: "Series name."
+              datasetIndex:
+                type: "number"
+                description: "Series index."
+              dataIndex:
+                type: "number"
+                description: "Index within the series."
+              value:
+                description: "Raw data point or dataset row, matching wippy-chartjs."
+          legend-change:
+            type: "object"
+            description: "Legend selection changed. Bubbles and is composed."
+            properties:
+              selected:
+                type: "object"
+                additionalProperties:
+                  type: "boolean"
+                description: "Series name to selected state."
+          datazoom:
+            type: "object"
+            description: "First affected dataZoom range, in percent; null if a value-based action omitted percentages. Bubbles and is composed."
+            properties:
+              start:
+                type: ["number","null"]
+                description: "Start percentage or null."
+              end:
+                type: ["number","null"]
+                description: "End percentage or null."
+          chart-rendered:
+            type: "object"
+            description: "Empty detail once a requested option update or recreation finishes animations, progressive rendering and lazy updates. Hover and resize redraws alone do not emit it. Bubbles and is composed."
+            properties: {}
+          chart-error:
+            type: "object"
+            description: "Parse, import or initialization error. Bubbles and is composed."
+            properties:
+              message:
+                type: "string"
+                description: "Error message."

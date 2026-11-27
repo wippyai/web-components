@@ -83,14 +83,33 @@ export function withFormatters(option: EChartsCoreOption, locale = formatterLoca
     return callback
   }
 
-  function seriesColor(series: unknown, index: number): string | undefined {
-    if (isObject(series)) {
-      for (const style of [series.itemStyle, series.lineStyle]) {
-        if (isObject(style) && typeof style.color === 'string')
-          return style.color
-      }
+  const base = isObject(option.baseOption) ? option.baseOption : option
+  const baseSeries: unknown[] = Array.isArray(base.series) ? base.series : base.series ? [base.series] : []
+  type SeriesContext = { color: string | undefined, used: boolean }
+
+  function walkSeries(value: unknown, index: number): unknown {
+    if (!isObject(value)) return walk(value)
+    // Media/timeline series lists may contain only an override for a later series.
+    const matched = baseSeries.findIndex(candidate => isObject(candidate) && (
+      value.id !== undefined ? candidate.id === value.id : value.name !== undefined && candidate.name === value.name))
+    const baseIndex = matched >= 0 ? matched : index
+    const original = baseSeries[baseIndex]
+    let color: string | undefined
+    for (const key of ['itemStyle', 'lineStyle']) {
+      const own = value[key]
+      const inherited = isObject(original) ? original[key] : undefined
+      const paint = isObject(own) && own.color !== undefined ? own.color : isObject(inherited) ? inherited.color : undefined
+      if (typeof paint === 'string') { color = paint; break }
     }
-    return theme?.color[index % theme.color.length]
+    const context: SeriesContext = { color: color ?? theme?.color[baseIndex % theme.color.length], used: false }
+    const result = walk(value, context)
+    // ECharts skips explicit colors when allocating its palette. Pin marker users
+    // to the same color, including symbols when only lineStyle.color was supplied.
+    if (context.used && context.color && isObject(result)) {
+      const style = isObject(result.itemStyle) ? result.itemStyle : {}
+      if (style.color === undefined) result.itemStyle = { ...style, color: context.color }
+    }
+    return result
   }
 
   const hasOnly = (value: Record<string, unknown>, keys: string[]) => Object.keys(value).every(key => keys.includes(key))
@@ -129,9 +148,9 @@ export function withFormatters(option: EChartsCoreOption, locale = formatterLoca
     return undefined
   }
 
-  function walk(value: unknown, series?: string, key = ''): unknown {
+  function walk(value: unknown, series?: SeriesContext, key = ''): unknown {
     if (Array.isArray(value))
-      return value.map((child, index) => walk(child, key === 'series' ? seriesColor(child, index) : series))
+      return value.map((child, index) => key === 'series' ? walkSeries(child, index) : walk(child, series))
     if (!isObject(value))
       return value
     if (Object.prototype.hasOwnProperty.call(value, '$format')) {
@@ -140,14 +159,16 @@ export function withFormatters(option: EChartsCoreOption, locale = formatterLoca
         console.warn('[wippy-echarts] Ignored unsupported $format descriptor; using ECharts defaults.', value.$format)
       return formatter
     }
-    if (Object.keys(value).some(key => key.startsWith('$'))) {
-      const resolved = key === 'formatter' || key === 'valueFormatter' ? undefined : colorMarker(value, series)
+    if (['$seriesColor', '$seriesGradient', '$themeColor'].some(key => Object.prototype.hasOwnProperty.call(value, key))) {
+      const resolved = key === 'formatter' || key === 'valueFormatter' ? undefined : colorMarker(value, series?.color)
       if (resolved === undefined)
         console.warn('[wippy-echarts] Ignored unsupported color descriptor; using ECharts defaults.')
+      else if (series && ('$seriesColor' in value || '$seriesGradient' in value))
+        series.used = true
       return resolved
     }
     return Object.fromEntries(Object.entries(value).flatMap(([childKey, child]) => {
-      const next = walk(child, childKey === 'series' && !Array.isArray(child) ? seriesColor(child, 0) : series, childKey)
+      const next = childKey === 'series' && !Array.isArray(child) ? walkSeries(child, 0) : walk(child, series, childKey)
       return next === undefined ? [] : [[childKey, next]]
     }))
   }

@@ -618,7 +618,7 @@ var Ke = class extends Me {
 const Qe = () => Ye(), Xe = () => Ge();
 let q;
 function Ze() {
-  return q ??= import("./echarts-sttLCjYp.js").catch((e) => {
+  return q ??= import("./echarts-CycbxEBO.js").catch((e) => {
     throw q = void 0, e;
   });
 }

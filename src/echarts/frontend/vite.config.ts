@@ -1,4 +1,6 @@
-import { resolve } from 'node:path'
+import { readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
+import { dirname, resolve } from 'node:path'
 import vue from '@vitejs/plugin-vue'
 import { wippyComponentPlugin } from '@wippy-fe/vite-plugin'
 import { defineConfig } from 'vite'
@@ -11,6 +13,23 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     vue({ template: { compilerOptions: { isCustomElement: tag => tag === 'wippy-loading' } } }),
     wippyComponentPlugin(),
+    {
+      name: 'runtime-licenses',
+      generateBundle() {
+        const require = createRequire(import.meta.url)
+        const engineManifest = require.resolve('echarts/package.json')
+        const engineRequire = createRequire(engineManifest)
+        const packages = [
+          [dirname(engineManifest), 'echarts', ['LICENSE', 'NOTICE', 'licenses/LICENSE-d3']],
+          [dirname(engineRequire.resolve('zrender/package.json')), 'zrender', ['LICENSE']],
+          [dirname(engineRequire.resolve('tslib')), 'tslib', ['LICENSE.txt', 'CopyrightNotice.txt']],
+        ] as const
+        for (const [directory, name, files] of packages) {
+          for (const file of files)
+            this.emitFile({ type: 'asset', fileName: `licenses/${name}/${file}`, source: readFileSync(resolve(directory, file)) })
+        }
+      },
+    },
   ],
   build: {
     target: 'esnext',

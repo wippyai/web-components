@@ -88,7 +88,7 @@ The tooltip header displays a locale date such as `11/20/2026`, without `00:00:0
 
 ## Theme colour markers
 
-Use these JSON markers wherever ECharts accepts a colour, including `itemStyle`, `lineStyle`, `areaStyle`, nested data items, `shadowColor`, graphic styles and title text. The element resolves them alongside `$format` markers just before `setOption`. Theme and palette changes resolve the original JSON again.
+Use these JSON markers wherever ECharts accepts a colour, including `itemStyle`, `lineStyle`, `areaStyle`, nested data items, `shadowColor` and title text. The element resolves them alongside `$format` markers just before `setOption`. Theme and palette changes resolve the original JSON again.
 
 | Marker | Result |
 | --- | --- |
@@ -96,7 +96,7 @@ Use these JSON markers wherever ECharts accepts a colour, including `itemStyle`,
 | `{ "$seriesGradient": { "from": 0.35, "to": 0, "direction": "vertical" } }` | A linear gradient from the series colour at alpha `from` to alpha `to`. These are the defaults. `horizontal` runs left to right; `vertical` runs top to bottom. |
 | `{ "$themeColor": "border", "alpha": 0.5 }` | A resolved host colour. Choose `text`, `muted`, `border` or `surface`. Alpha defaults to 1. |
 
-The series colour comes from its explicit string `itemStyle.color`, then its explicit string `lineStyle.color`, then the element's palette at `seriesIndex % palette.length`. A data item's own colour does not change the containing series colour. Series markers require a containing series. The element owns the palette precedence described below, so consumers need no palette values.
+The series colour comes from its explicit string `itemStyle.color`, then its explicit string `lineStyle.color`, then the element's palette at `seriesIndex % palette.length`. Series using colour markers have their paint pinned to the resolved colour when `itemStyle.color` is absent. Media and timeline overrides match the base series by id or name before falling back to list position. A data item's own colour does not change the containing series colour. Series markers require a containing series. The element owns the palette precedence described below, so consumers need no palette values.
 
 `text`, `muted`, `border` and `surface` use the same resolved text, muted text, content border and content background tokens as the chart theme. Colours become sRGB `rgba()` strings. Alpha replaces any alpha in the source CSS colour and must be a finite number from 0 to 1. Hex, RGB, HSL and browser-supported CSS colours such as OKLCH and `color()` are supported.
 
@@ -189,7 +189,7 @@ el.addEventListener('chart-click', (e) => {
 - name: wc-echarts
   kind: ns.dependency
   component: wippy-swiss/echarts
-  version: ">=v0.1.0"
+  version: ">=0.3.0"
   parameters:
     - name: server
       value: app:gateway
@@ -205,14 +205,18 @@ From `src/echarts/frontend`, run `pnpm install`, `pnpm run build`, `pnpm run lin
 
 After verification, remove `frontend/node_modules` before starting a Wippy app with this local replacement. Pnpm dependency symlinks inside a replaced module can prevent Wippy startup.
 
+## Licences
+
+Every build copies installed runtime licence texts to `public/licenses/`, which is embedded in the published module. The folder includes ECharts' Apache-2.0 licence and NOTICE, its D3 BSD notice, zrender's BSD-3-Clause licence, and tslib's 0BSD licence and copyright notice. Vue, Pinia, Iconify and the Wippy proxy are external.
+
 ## Bundle size
 
 Measured with Node `gzipSync`, each file compressed independently, in the production build on 2026-11-27:
 
 | Chunk | Raw bytes | Gzip bytes |
 | --- | ---: | ---: |
-| Element entry `index.js` | 39,029 | 12,343 |
-| Lazy ECharts engine | 1,078,555 | 297,655 |
+| Element entry `index.js` | 39,029 | 12,344 |
+| Lazy ECharts engine | 1,079,322 | 297,901 |
 
 The lazy engine includes the registered chart types, components, declarative formatters and colour markers. Marker resolution and ECharts time utilities remain behind the dynamic import. Adding chart types or components requires a new size measurement.
 

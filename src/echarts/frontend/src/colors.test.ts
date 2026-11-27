@@ -38,9 +38,9 @@ describe('series color markers', () => {
     const option = { series: Array.from({ length: 3 }, () => ({ lineStyle: { shadowColor: { $seriesColor: { alpha: 0.6 } } } })) }
     const json = JSON.stringify(option)
     expect(resolve(option).series).toEqual([
-      { lineStyle: { shadowColor: 'rgba(18, 52, 86, 0.6)' } },
-      { lineStyle: { shadowColor: 'rgba(171, 205, 239, 0.6)' } },
-      { lineStyle: { shadowColor: 'rgba(18, 52, 86, 0.6)' } },
+      { itemStyle: { color: '#123456' }, lineStyle: { shadowColor: 'rgba(18, 52, 86, 0.6)' } },
+      { itemStyle: { color: '#abcdef' }, lineStyle: { shadowColor: 'rgba(171, 205, 239, 0.6)' } },
+      { itemStyle: { color: '#123456' }, lineStyle: { shadowColor: 'rgba(18, 52, 86, 0.6)' } },
     ])
     expect(JSON.stringify(option)).toBe(json)
   })
@@ -57,12 +57,13 @@ describe('series color markers', () => {
       { itemStyle: { color: { $seriesColor: {} } }, lineStyle: { color: '#00ff00' }, data },
     ] }).series).toEqual([
       { itemStyle: { color: '#ff0000' }, lineStyle: { color: '#00ff00' }, data: [{ value: 1, itemStyle: { color: '#000000', shadowColor: 'rgba(255, 0, 0, 1)' } }] },
-      { lineStyle: { color: '#0000ff' }, data: [{ value: 1, itemStyle: { color: '#000000', shadowColor: 'rgba(0, 0, 255, 1)' } }] },
+      { itemStyle: { color: '#0000ff' }, lineStyle: { color: '#0000ff' }, data: [{ value: 1, itemStyle: { color: '#000000', shadowColor: 'rgba(0, 0, 255, 1)' } }] },
       { itemStyle: { color: 'rgba(0, 255, 0, 1)' }, lineStyle: { color: '#00ff00' }, data: [{ value: 1, itemStyle: { color: '#000000', shadowColor: 'rgba(0, 255, 0, 1)' } }] },
     ])
   })
   it.each(['vertical', 'horizontal'])('creates a %s area gradient', (direction) => {
     expect(resolve({ series: { areaStyle: { color: { $seriesGradient: { from: 0.6, to: 0, direction } } } } }).series).toEqual({
+      itemStyle: { color: '#123456' },
       areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: direction === 'horizontal' ? 1 : 0,
         y2: direction === 'vertical' ? 1 : 0, colorStops: [
           { offset: 0, color: 'rgba(18, 52, 86, 0.6)' }, { offset: 1, color: 'rgba(18, 52, 86, 0)' },
@@ -96,11 +97,17 @@ describe('invalid color descriptors', () => {
     { $seriesGradient: { extra: true } }, { $seriesGradient: {}, alpha: 0.5 },
     { $themeColor: 'unknown' }, { $themeColor: '__proto__' }, { $themeColor: {} },
     { $themeColor: 'border', alpha: 2 }, { $themeColor: 'text', extra: true },
-    { $themeColor: 'text', $seriesColor: {} }, { $unknown: {} },
+    { $themeColor: 'text', $seriesColor: {} },
   ])('drops malformed marker %j with one warning', (marker) => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     expect(resolve({ series: { itemStyle: { color: marker } } }).series).toEqual({ itemStyle: {} })
     expect(warn).toHaveBeenCalledOnce()
+  })
+  it('preserves objects with undocumented dollar keys', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const option = { dataset: { source: [{ name: 'A', $revenue: 7, $unknown: {} }] } }
+    expect(resolve(option)).toEqual(option)
+    expect(warn).not.toHaveBeenCalled()
   })
   it('drops series markers outside a series and invalid source colors', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})

@@ -6,6 +6,7 @@ import { init } from './app/echarts'
 import { createChartController } from './chart-controller'
 import { resolvedProps as resolveProps } from './test-props'
 import { buildTheme } from './theme'
+import { colorWithAlpha } from './colors'
 
 const light = buildTheme({ getPropertyValue: () => '', color: '#111111', fontFamily: 'sans-serif' }, ['#123456'])
 const dark = { ...light, textStyle: { ...light.textStyle, color: '#eeeeee' }, color: ['#abcdef'], darkMode: true }
@@ -47,6 +48,50 @@ function state(chart: EChartsType) {
 
 const source = { animation: false, legend: {}, dataZoom: { type: 'inside' },
   xAxis: { type: 'category', data: ['A', 'B', 'C', 'D'] }, yAxis: {}, series: [{ id: 'sales', type: 'bar', name: 'Sales', data: [1, 2, 3, 4] }] }
+
+it('renders dataset rows with dollar-prefixed dimension names', async () => {
+  const { render } = setup()
+  const row = { name: 'A', $revenue: 7 }
+  const chart = await render({ animation: false, dataset: { source: [row] },
+    xAxis: { type: 'category' }, yAxis: {}, series: [{ type: 'bar', encode: { x: 'name', y: '$revenue' } }] })
+  expect(chart.getOption().dataset).toEqual([expect.objectContaining({ source: [row] })])
+  expect(chart.getDataURL({ type: 'svg' })).toContain('svg')
+})
+
+const marker = { $seriesGradient: { from: 0.35, to: 0 } }
+function expectMarkerPaint(chart: EChartsType, index: number, expected: string) {
+  const paint = chart.getVisual({ seriesIndex: index }, 'color')
+  expect(paint).toBe(expected)
+  const series = chart.getOption().series as { areaStyle: { color: { colorStops: { color: string }[] } } }[]
+  expect(series[index]?.areaStyle.color.colorStops).toEqual([
+    { offset: 0, color: colorWithAlpha(String(paint), 0.35) },
+    { offset: 1, color: colorWithAlpha(String(paint), 0) },
+  ])
+}
+
+it.each(['itemStyle', 'lineStyle'])('keeps markers and engine paint aligned after an explicit %s color', async (style) => {
+  const { render } = setup()
+  const chart = await render({ animation: false, xAxis: {}, yAxis: {}, series: [
+    { id: 'a', type: 'line', data: [1, 2], [style]: { color: '#ff0000' }, areaStyle: { color: marker } },
+    { id: 'b', type: 'line', data: [3, 4], areaStyle: { color: marker } },
+  ] }, { ...light, color: ['#123456', '#abcdef'] })
+  expectMarkerPaint(chart, 0, '#ff0000')
+  expectMarkerPaint(chart, 1, '#abcdef')
+})
+
+it.each(['id', 'name'])('matches media series by %s to the base palette and explicit color', async (key) => {
+  const { render } = setup()
+  const chart = await render({ baseOption: { animation: false, xAxis: {}, yAxis: {}, series: [
+    { id: 'a', name: 'A', type: 'line', data: [1, 2] },
+    { id: 'b', name: 'B', type: 'line', data: [3, 4] },
+    { id: 'c', name: 'C', type: 'line', data: [5, 6], itemStyle: { color: '#ff0000' } },
+  ] }, media: [{ query: { minWidth: 500 }, option: { series: [
+    { [key]: key === 'id' ? 'b' : 'B', areaStyle: { color: marker } },
+    { [key]: key === 'id' ? 'c' : 'C', areaStyle: { color: marker } },
+  ] } }] }, { ...light, color: ['#123456', '#abcdef'] })
+  expectMarkerPaint(chart, 1, '#abcdef')
+  expectMarkerPaint(chart, 2, '#ff0000')
+})
 
 it('matches native merge and preserves zoom and legend selection across full-option data updates', async () => {
   const { render } = setup()

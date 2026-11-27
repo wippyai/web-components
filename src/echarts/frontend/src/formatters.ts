@@ -1,5 +1,7 @@
 import { Model, time } from 'echarts/core'
 import type { EChartsCoreOption } from 'echarts/core'
+import { colorWithAlpha } from './colors'
+import type { buildTheme } from './theme'
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -18,7 +20,7 @@ export function formatterLocale(doc = globalThis.document): string {
 }
 
 /** Runs only after the engine import. JSON is data, never executable source. */
-export function withFormatters(option: EChartsCoreOption, locale = formatterLocale()): EChartsCoreOption {
+export function withFormatters(option: EChartsCoreOption, locale = formatterLocale(), theme?: ReturnType<typeof buildTheme>): EChartsCoreOption {
   const useUTC = (isObject(option.baseOption) ? option.baseOption.useUTC : option.useUTC) === true
   let timeLocale: Model | undefined
   function getTimeLocale() {
@@ -81,9 +83,55 @@ export function withFormatters(option: EChartsCoreOption, locale = formatterLoca
     return callback
   }
 
-  function walk(value: unknown): unknown {
+  function seriesColor(series: unknown, index: number): string | undefined {
+    if (isObject(series)) {
+      for (const style of [series.itemStyle, series.lineStyle]) {
+        if (isObject(style) && typeof style.color === 'string')
+          return style.color
+      }
+    }
+    return theme?.color[index % theme.color.length]
+  }
+
+  const hasOnly = (value: Record<string, unknown>, keys: string[]) => Object.keys(value).every(key => keys.includes(key))
+  const alpha = (value: unknown, fallback: number) => value === undefined ? fallback
+    : typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1 ? value : undefined
+
+  function colorMarker(value: Record<string, unknown>, series: string | undefined): unknown {
+    if ('$themeColor' in value && hasOnly(value, ['$themeColor', 'alpha']) && theme) {
+      const colors = { text: theme.textStyle.color, muted: theme.categoryAxis.axisLabel.color,
+        border: theme.tooltip.borderColor, surface: theme.tooltip.backgroundColor }
+      const key = value.$themeColor
+      const opacity = alpha(value.alpha, 1)
+      if (typeof key === 'string' && Object.prototype.hasOwnProperty.call(colors, key) && opacity !== undefined)
+        return colorWithAlpha(colors[key as keyof typeof colors], opacity)
+    }
+    if ('$seriesColor' in value && hasOnly(value, ['$seriesColor']) && isObject(value.$seriesColor) && series) {
+      const spec = value.$seriesColor
+      const opacity = alpha(spec.alpha, 1)
+      if (hasOnly(spec, ['alpha']) && opacity !== undefined)
+        return colorWithAlpha(series, opacity)
+    }
+    if ('$seriesGradient' in value && hasOnly(value, ['$seriesGradient']) && isObject(value.$seriesGradient) && series) {
+      const spec = value.$seriesGradient
+      const from = alpha(spec.from, 0.35)
+      const to = alpha(spec.to, 0)
+      const direction = spec.direction === undefined ? 'vertical' : spec.direction
+      if (hasOnly(spec, ['from', 'to', 'direction']) && from !== undefined && to !== undefined
+        && (direction === 'vertical' || direction === 'horizontal')) {
+        const start = colorWithAlpha(series, from)
+        const end = colorWithAlpha(series, to)
+        if (start && end)
+          return { type: 'linear', x: 0, y: 0, x2: direction === 'horizontal' ? 1 : 0,
+            y2: direction === 'vertical' ? 1 : 0, colorStops: [{ offset: 0, color: start }, { offset: 1, color: end }] }
+      }
+    }
+    return undefined
+  }
+
+  function walk(value: unknown, series?: string, key = ''): unknown {
     if (Array.isArray(value))
-      return value.map(walk)
+      return value.map((child, index) => walk(child, key === 'series' ? seriesColor(child, index) : series))
     if (!isObject(value))
       return value
     if (Object.prototype.hasOwnProperty.call(value, '$format')) {
@@ -92,8 +140,14 @@ export function withFormatters(option: EChartsCoreOption, locale = formatterLoca
         console.warn('[wippy-echarts] Ignored unsupported $format descriptor; using ECharts defaults.', value.$format)
       return formatter
     }
+    if (Object.keys(value).some(key => key.startsWith('$'))) {
+      const resolved = key === 'formatter' || key === 'valueFormatter' ? undefined : colorMarker(value, series)
+      if (resolved === undefined)
+        console.warn('[wippy-echarts] Ignored unsupported color descriptor; using ECharts defaults.')
+      return resolved
+    }
     return Object.fromEntries(Object.entries(value).flatMap(([childKey, child]) => {
-      const next = walk(child)
+      const next = walk(child, childKey === 'series' && !Array.isArray(child) ? seriesColor(child, 0) : series, childKey)
       return next === undefined ? [] : [[childKey, next]]
     }))
   }

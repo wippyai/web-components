@@ -1,15 +1,15 @@
-import { ref as O, createApp as se, inject as Y, defineComponent as oe, computed as H, onMounted as ae, watch as le, onUnmounted as ce, openBlock as k, createElementBlock as N, toDisplayString as ue, createCommentVNode as $, createElementVNode as pe, unref as de } from "vue";
+import { ref as O, createApp as ne, inject as Y, defineComponent as oe, computed as U, onMounted as ae, watch as le, onUnmounted as ce, openBlock as k, createElementBlock as N, toDisplayString as ue, createCommentVNode as H, createElementVNode as pe, unref as de } from "vue";
 import { addCollection as he } from "@iconify/vue";
-import { config as B, addIcons as fe, on as D, applyThemeMode as L, host as K, hostCss as me, loadCss as be, define as ye } from "@wippy-fe/proxy";
+import { config as B, addIcons as fe, on as D, applyThemeMode as L, host as G, hostCss as me, loadCss as be, define as ye } from "@wippy-fe/proxy";
 import { getActivePinia as _e, createPinia as ge, setActivePinia as ve } from "pinia";
-var U = "data-wippy-visible";
+var $ = "data-wippy-visible";
 function F(e) {
-  const t = e.getAttribute(U);
+  const t = e.getAttribute($);
   return t === "true" ? !0 : t === "false" ? !1 : null;
 }
-var Ce = Object.defineProperty, G = (e) => {
+var Ce = Object.defineProperty, K = (e) => {
   throw TypeError(e);
-}, we = (e, t, i) => t in e ? Ce(e, t, { enumerable: !0, configurable: !0, writable: !0, value: i }) : e[t] = i, f = (e, t, i) => we(e, typeof t != "symbol" ? t + "" : t, i), Q = (e, t, i) => t.has(e) || G("Cannot " + i), Se = (e, t, i) => (Q(e, t, "read from private field"), i ? i.call(e) : t.get(e)), Ee = (e, t, i) => t.has(e) ? G("Cannot add the same private member more than once") : t instanceof WeakSet ? t.add(e) : t.set(e, i), xe = (e, t, i, r) => (Q(e, t, "write to private field"), t.set(e, i), i), Ae = [
+}, we = (e, t, i) => t in e ? Ce(e, t, { enumerable: !0, configurable: !0, writable: !0, value: i }) : e[t] = i, f = (e, t, i) => we(e, typeof t != "symbol" ? t + "" : t, i), Q = (e, t, i) => t.has(e) || K("Cannot " + i), Se = (e, t, i) => (Q(e, t, "read from private field"), i ? i.call(e) : t.get(e)), Ee = (e, t, i) => t.has(e) ? K("Cannot add the same private member more than once") : t instanceof WeakSet ? t.add(e) : t.set(e, i), xe = (e, t, i, r) => (Q(e, t, "write to private field"), t.set(e, i), i), Ae = [
   "themeConfigUrl",
   "primeVueCssUrl",
   "markdownCssUrl",
@@ -27,16 +27,16 @@ function Pe(...e) {
   const t = /* @__PURE__ */ new Set();
   for (const i of e)
     if (i)
-      for (const [r, n] of Object.entries(i)) {
-        if ((r === "@light" || r === "@dark") && n && typeof n == "object") {
-          for (const [o, a] of Object.entries(n)) {
+      for (const [r, s] of Object.entries(i)) {
+        if ((r === "@light" || r === "@dark") && s && typeof s == "object") {
+          for (const [o, a] of Object.entries(s)) {
             const l = typeof a == "string" ? W(o) : null;
             l && t.add(l);
           }
           continue;
         }
-        const s = typeof n == "string" ? W(r) : null;
-        s && t.add(s);
+        const n = typeof s == "string" ? W(r) : null;
+        n && t.add(n);
       }
   return [...t].sort();
 }
@@ -54,22 +54,22 @@ function ze(e, t) {
   i && X(e, i, "@wippy-fe/css-variables-bridge");
 }
 function Le(e, t) {
-  const r = (t ?? Ae).map(async (n) => {
-    const s = me[n];
-    if (!s)
-      return console.warn(`[wippy-fe/webcomponent-core] hostCss key "${n}" is undefined — skipping. Remove it from hostCssKeys if the CSS was removed.`), null;
+  const r = (t ?? Ae).map(async (s) => {
+    const n = me[s];
+    if (!n)
+      return console.warn(`[wippy-fe/webcomponent-core] hostCss key "${s}" is undefined — skipping. Remove it from hostCssKeys if the CSS was removed.`), null;
     try {
-      return await be(s);
+      return await be(n);
     } catch (o) {
-      return console.warn(`[wippy-fe/webcomponent-core] Failed to load hostCss "${n}" (${s}):`, o), null;
+      return console.warn(`[wippy-fe/webcomponent-core] Failed to load hostCss "${s}" (${n}):`, o), null;
     }
   });
-  return Promise.all(r).then((n) => {
-    for (const s of n) {
-      if (!s)
+  return Promise.all(r).then((s) => {
+    for (const n of s) {
+      if (!n)
         continue;
       const o = document.createElement("style");
-      o.textContent = s, o.setAttribute("role", "@wippy-fe/host-css"), e.appendChild(o);
+      o.textContent = n, o.setAttribute("role", "@wippy-fe/host-css"), e.appendChild(o);
     }
   });
 }
@@ -79,8 +79,8 @@ function Te(e, t) {
 }
 function X(e, t, i) {
   if (typeof CSSStyleSheet < "u" && "replaceSync" in CSSStyleSheet.prototype) {
-    const n = new CSSStyleSheet();
-    n.replaceSync(t), e.adoptedStyleSheets = [...e.adoptedStyleSheets, n];
+    const s = new CSSStyleSheet();
+    s.replaceSync(t), e.adoptedStyleSheets = [...e.adoptedStyleSheets, s];
     return;
   }
   const r = document.createElement("style");
@@ -123,13 +123,13 @@ function ke(e, t, i) {
 }
 function M(e, t) {
   const i = {}, r = [];
-  for (const [n, s] of Object.entries(t.properties)) {
-    const o = e.getAttribute(n), a = Re(n);
+  for (const [s, n] of Object.entries(t.properties)) {
+    const o = e.getAttribute(s), a = Re(s);
     if (o === null) {
-      s.default !== void 0 && (i[a] = s.default);
+      n.default !== void 0 && (i[a] = n.default);
       continue;
     }
-    const l = ke(n, o, s);
+    const l = ke(s, o, n);
     l.error ? r.push(l.error) : i[a] = l.value;
   }
   return { props: i, errors: r };
@@ -145,26 +145,26 @@ var Ne = class {
       get errors() {
         return i._errors;
       },
-      subscribe(r, n) {
-        return i._subscribeProps(r, n);
+      subscribe(r, s) {
+        return i._subscribeProps(r, s);
       }
     }, this.events = {
-      emit(r, n) {
-        i._disposed || i._emitToDom(r, n);
+      emit(r, s) {
+        i._disposed || i._emitToDom(r, s);
       }
     }, this.content = e.hasContent ? {
       get value() {
         return i._content;
       },
-      subscribe(r, n) {
-        return i._subscribeContent(r, n);
+      subscribe(r, s) {
+        return i._subscribeContent(r, s);
       }
     } : null, this.hostVisibility = {
       get value() {
         return i._hostVisibility;
       },
-      subscribe(r, n) {
-        return i._subscribeHostVisibility(r, n);
+      subscribe(r, s) {
+        return i._subscribeHostVisibility(r, s);
       }
     };
   }
@@ -247,7 +247,7 @@ var Ne = class {
    */
   static get observedAttributes() {
     const e = this.wippyConfig, t = Object.keys(e.propsSchema.properties), i = e.extraObservedAttributes ?? [];
-    return [.../* @__PURE__ */ new Set([...t, ...i, U])];
+    return [.../* @__PURE__ */ new Set([...t, ...i, $])];
   }
   /**
    * Host-owned logical activity. `null` means no host manages this element.
@@ -311,12 +311,12 @@ var Ne = class {
       if (this._lastProps !== null)
         i = this._lastProps, r = this._lastErrors;
       else {
-        const s = M(this, e.propsSchema);
-        e.validateProps && s.errors.push(...e.validateProps(s.props)), i = s.props, r = s.errors, this._lastProps = i, this._lastErrors = r;
+        const n = M(this, e.propsSchema);
+        e.validateProps && n.errors.push(...e.validateProps(n.props)), i = n.props, r = n.errors, this._lastProps = i, this._lastErrors = r;
       }
-      const n = t ? this._lastContent ?? this._extractContent(e.contentTemplate) : null;
-      t && this._lastContent === null && (this._lastContent = n), this._reactive = new Ne(
-        { props: i, errors: r, content: n, hasContent: t, hostVisibility: this._hostVisible },
+      const s = t ? this._lastContent ?? this._extractContent(e.contentTemplate) : null;
+      t && this._lastContent === null && (this._lastContent = s), this._reactive = new Ne(
+        { props: i, errors: r, content: s, hasContent: t, hostVisibility: this._hostVisible },
         this.emitEvent.bind(this)
       );
     }
@@ -328,9 +328,9 @@ var Ne = class {
     this._internals.states.add("loading");
     try {
       const t = this.constructor.wippyConfig, i = this._initialized, r = Se(this, I) ?? xe(this, I, this.shadowRoot ?? this.attachShadow({ mode: t.shadowMode ?? "open" }));
-      let n;
+      let s;
       if (this._container)
-        n = this._container;
+        s = this._container;
       else {
         if (this.onInit(r), e !== this._attachment)
           return;
@@ -350,14 +350,14 @@ var Ne = class {
             c && Ie(r, c);
           } catch {
           }
-        (t.hostCssKeys === void 0 || t.hostCssKeys.length > 0) && Le(r, t.hostCssKeys), n = document.createElement("div"), n.setAttribute("data-wippy-theme-root", "");
+        (t.hostCssKeys === void 0 || t.hostCssKeys.length > 0) && Le(r, t.hostCssKeys), s = document.createElement("div"), s.setAttribute("data-wippy-theme-root", "");
         const p = t.containerClasses ?? [];
-        p.length > 0 && n.classList.add(...p), r.appendChild(n), this._container = n, fe(he);
+        p.length > 0 && s.classList.add(...p), r.appendChild(s), this._container = s, fe(he);
       }
       this._applyTheme(), this._themeUnsub || (this._themeUnsub = D("@theme", (p) => this._applyTheme(p)));
-      const { props: s, errors: o } = M(this, t.propsSchema);
-      t.validateProps && o.push(...t.validateProps(s));
-      const a = s;
+      const { props: n, errors: o } = M(this, t.propsSchema);
+      t.validateProps && o.push(...t.validateProps(n));
+      const a = n;
       this._lastProps = a, this._lastErrors = o;
       let l = null;
       if (t.contentTemplate && (l = this._extractContent(t.contentTemplate), this._lastContent = l, this._contentObserver = new MutationObserver(() => {
@@ -367,7 +367,7 @@ var Ne = class {
         childList: !0,
         characterData: !0,
         subtree: !0
-      })), this.onMount(r, n, a, o, l, i), e !== this._attachment)
+      })), this.onMount(r, s, a, o, l, i), e !== this._attachment)
         return;
       this._internals.states.delete("loading"), this._internals.states.add("ready"), i || (this._initialized = !0), this.onReady(), e === this._attachment && this.emitEvent("load");
     } catch (t) {
@@ -389,7 +389,7 @@ var Ne = class {
    * No-op for an older proxy without `getThemeMode` — `applyThemeMode` clamps
    * `undefined` to 'auto'.
    */
-  _applyTheme(e = K.getThemeMode?.()) {
+  _applyTheme(e = G.getThemeMode?.()) {
     L(e, this), this._container && L(e, this._container);
   }
   disconnectedCallback() {
@@ -399,17 +399,17 @@ var Ne = class {
   attributeChangedCallback(e, t, i) {
     if (t === i)
       return;
-    if (e === U) {
+    if (e === $) {
       const a = this._hostVisible, l = F(this);
       if (l === a)
         return;
       this._hostVisible = l, this.isConnected && this._initialized && (this._reactive?.notifyHostVisibility(l, a), this.onHostVisibilityChanged(l, a));
       return;
     }
-    const r = this.constructor.wippyConfig, { props: n, errors: s } = M(this, r.propsSchema);
-    r.validateProps && s.push(...r.validateProps(n));
-    const o = n;
-    this._lastProps = o, this._lastErrors = s, this._reactive?.notifyProps(o, s), this.onPropsChanged(o, s);
+    const r = this.constructor.wippyConfig, { props: s, errors: n } = M(this, r.propsSchema);
+    r.validateProps && n.push(...r.validateProps(s));
+    const o = s;
+    this._lastProps = o, this._lastErrors = n, this._reactive?.notifyProps(o, n), this.onPropsChanged(o, n);
   }
   // ── Hooks ──────────────────────────────────────────────────
   /** Called right after shadow DOM is attached, before CSS or container. */
@@ -454,21 +454,21 @@ I = /* @__PURE__ */ new WeakMap();
 function De(e) {
   return e.__wippyHostBus ?? null;
 }
-function Ue(e) {
+function $e(e) {
   return e.dataset.wippyPanelId ?? null;
 }
-var He = Object.defineProperty, $e = (e, t, i) => t in e ? He(e, t, { enumerable: !0, configurable: !0, writable: !0, value: i }) : e[t] = i, A = (e, t, i) => $e(e, typeof t != "symbol" ? t + "" : t, i);
+var Ue = Object.defineProperty, He = (e, t, i) => t in e ? Ue(e, t, { enumerable: !0, configurable: !0, writable: !0, value: i }) : e[t] = i, A = (e, t, i) => He(e, typeof t != "symbol" ? t + "" : t, i);
 function j(e, t, i) {
-  const r = e.createElement("div"), n = i ? t.failed : t.loading;
-  r.dataset.lazyState = i ? "failed" : "loading", r.setAttribute("role", i ? "alert" : "status"), r.setAttribute("aria-label", n), r.style.cssText = "display:grid;place-items:center;text-align:center;";
-  const s = t.surface === "page";
-  if (r.style.cssText += s ? "block-size:100%;min-block-size:0;" : "min-block-size:2rem;font-size:.875rem;", i)
-    r.style.color = "var(--p-danger-500, currentColor)", r.textContent = !s && t.iconOnly ? "⚠" : n, !s && t.iconOnly && (r.title = n);
+  const r = e.createElement("div"), s = i ? t.failed : t.loading;
+  r.dataset.lazyState = i ? "failed" : "loading", r.setAttribute("role", i ? "alert" : "status"), r.setAttribute("aria-label", s), r.style.cssText = "display:grid;place-items:center;text-align:center;";
+  const n = t.surface === "page";
+  if (r.style.cssText += n ? "block-size:100%;min-block-size:0;" : "min-block-size:2rem;font-size:.875rem;", i)
+    r.style.color = "var(--p-danger-500, currentColor)", r.textContent = !n && t.iconOnly ? "⚠" : s, !n && t.iconOnly && (r.title = s);
   else {
     const o = e.createElement("style");
     o.textContent = '@media (prefers-reduced-motion: no-preference) { [data-lazy-state="loading"] > [data-wippy-spinner] { animation: wippy-lazy-spin 1s linear infinite; } } @keyframes wippy-lazy-spin { to { transform: rotate(1turn); } }';
     const a = e.createElement("span");
-    a.dataset.wippySpinner = "", a.setAttribute("aria-hidden", "true"), a.style.cssText = "display:block;box-sizing:border-box;inline-size:1em;block-size:1em;border:2px solid var(--p-surface-300, currentColor);border-top-color:var(--p-primary-color, currentColor);border-radius:50%;", a.style.fontSize = s ? "2rem" : "1em", r.append(o, a);
+    a.dataset.wippySpinner = "", a.setAttribute("aria-hidden", "true"), a.style.cssText = "display:block;box-sizing:border-box;inline-size:1em;block-size:1em;border:2px solid var(--p-surface-300, currentColor);border-top-color:var(--p-primary-color, currentColor);border-radius:50%;", a.style.fontSize = n ? "2rem" : "1em", r.append(o, a);
   }
   return r;
 }
@@ -479,7 +479,7 @@ function Ye() {
     throw new Error("useProps() must be called inside a WippyVueElement");
   return e;
 }
-function Ke() {
+function Ge() {
   const e = Y(ee);
   if (!e)
     throw new Error("useEvents() must be called inside a WippyVueElement");
@@ -495,7 +495,7 @@ function J(e, t) {
     T.get(e) === r && T.delete(e);
   }), r;
 }
-var Ge = class extends Me {
+var Ke = class extends Me {
   constructor() {
     super(...arguments), A(this, "_vueApp", null), A(this, "_mountingApp", !1), A(this, "_mountState", "idle"), A(this, "_feedback", null), A(this, "_propsRef", O({})), A(this, "_errorsRef", O([])), A(this, "_contentRef", O(null)), A(this, "_hostVisibilityRef", O(null)), A(this, "_bridgeAbort", null);
   }
@@ -514,11 +514,11 @@ var Ge = class extends Me {
   get wippyMountState() {
     return this.constructor.vueConfig.mountLifecycle ? this._mountState : void 0;
   }
-  onMount(e, t, i, r, n, s) {
+  onMount(e, t, i, r, s, n) {
     const o = this.constructor, a = o.vueConfig, l = new AbortController();
     this._bridgeAbort = l;
     const p = () => !l.signal.aborted && this._bridgeAbort === l;
-    this._mountState = "mounting", this._propsRef.value = i, this._errorsRef.value = r, this._contentRef.value = n ?? null, this._hostVisibilityRef.value = this.hostVisible;
+    this._mountState = "mounting", this._propsRef.value = i, this._errorsRef.value = r, this._contentRef.value = s ?? null, this._hostVisibilityRef.value = this.hostVisible;
     for (const c of r)
       if (this.emitEvent("invalid", { message: c }), !p())
         return;
@@ -534,26 +534,26 @@ var Ge = class extends Me {
     const b = (c) => {
       if (!p())
         return;
-      const h = _e(), u = se(c.rootComponent);
-      let v = !1, C = !1, d, g;
+      const h = _e(), u = ne(c.rootComponent);
+      let v = !1, C = !1, d, _;
       this._mountingApp = !0;
       try {
         const S = ge();
         if (c.piniaPlugins)
-          for (const _ of c.piniaPlugins)
-            S.use(_);
+          for (const g of c.piniaPlugins)
+            S.use(g);
         u.use(S);
-        for (const _ of c.plugins ?? [])
-          u.use(_);
-        if (u.provide(te, this._propsRef), u.provide(Be, this._errorsRef), u.provide(ee, this.emitEvent.bind(this)), u.provide(Fe, this._contentRef), u.provide(qe, this._hostVisibilityRef), u.provide(We, Ue(this)), u.provide(je, De(this)), u.provide(Je, Z(this)), c.providers?.(u, this), !p())
+        for (const g of c.plugins ?? [])
+          u.use(g);
+        if (u.provide(te, this._propsRef), u.provide(Be, this._errorsRef), u.provide(ee, this.emitEvent.bind(this)), u.provide(Fe, this._contentRef), u.provide(qe, this._hostVisibilityRef), u.provide(We, $e(this)), u.provide(je, De(this)), u.provide(Je, Z(this)), c.providers?.(u, this), !p())
           return;
-        if (g = u.config.errorHandler, a.mountLifecycle && (u.config.errorHandler = (_, E, m) => {
-          C || (d = _), C = !0, g?.(_, E, m);
+        if (_ = u.config.errorHandler, a.mountLifecycle && (u.config.errorHandler = (g, E, m) => {
+          C || (d = g), C = !0, _?.(g, E, m);
         }), u.mount(t), v = !0, C)
           throw d;
         p() && (this._vueApp = u);
       } finally {
-        a.mountLifecycle && v && (u.config.errorHandler = g);
+        a.mountLifecycle && v && (u.config.errorHandler = _);
         try {
           v && (C || !p()) && u.unmount();
         } finally {
@@ -589,7 +589,7 @@ var Ge = class extends Me {
         clearTimeout(v), clearTimeout(C), this._feedback?.remove(), this._feedback = null;
       };
       l.signal.addEventListener("abort", d, { once: !0 });
-      const g = () => {
+      const _ = () => {
         if (!p() || u)
           return;
         const m = h ? j(c, h, !1) : c.createElement("wippy-loading");
@@ -600,8 +600,8 @@ var Ge = class extends Me {
         u = !0, d(), this._mountState = "failed";
         const x = h?.failed ?? (m instanceof Error ? m.message : String(m)), y = h ? j(c, h, !0) : c.createElement("wippy-error");
         h || (y.setAttribute("title", "Failed to load"), y.setAttribute("message", x)), this._feedback = y, t.appendChild(y), this.emitEvent("error", h ? { message: x, error: m } : { message: x });
-      }, _ = h?.delay ?? (h?.surface === "compact" ? 200 : 0);
-      _ > 0 ? v = setTimeout(g, _) : g(), h && (C = setTimeout(() => S(new Error("The component did not load in time.")), h.timeout ?? 3e4)), (a.mountLifecycle ? J(o, a.lazyConfig) : a.lazyConfig()).then((m) => {
+      }, g = h?.delay ?? (h?.surface === "compact" ? 200 : 0);
+      g > 0 ? v = setTimeout(_, g) : _(), h && (C = setTimeout(() => S(new Error("The component did not load in time.")), h.timeout ?? 3e4)), (a.mountLifecycle ? J(o, a.lazyConfig) : a.lazyConfig()).then((m) => {
         !p() || u || (u = !0, d(), b(m));
       }, (m) => {
         u || S(m);
@@ -615,17 +615,17 @@ var Ge = class extends Me {
     this._vueApp = null, e?.unmount();
   }
 };
-const Qe = () => Ye(), Xe = () => Ke();
+const Qe = () => Ye(), Xe = () => Ge();
 let q;
 function Ze() {
-  return q ??= import("./echarts-BMfa0m9z.js").catch((e) => {
+  return q ??= import("./echarts-sttLCjYp.js").catch((e) => {
     throw q = void 0, e;
   });
 }
 function et(e) {
   if (e.componentType !== "series" || !Number.isInteger(e.seriesIndex) || !Number.isInteger(e.dataIndex) || (e.seriesIndex ?? -1) < 0 || (e.dataIndex ?? -1) < 0)
     return null;
-  const t = e.data, i = t !== null && typeof t == "object" && !Array.isArray(t) ? t : void 0, r = i?.value ?? e.value ?? t, n = e.encode?.x?.[0], s = n === void 0 ? void 0 : e.dimensionNames?.[n], a = i?.x ?? (Array.isArray(r) && (n !== void 0 || !e.name) ? r[n ?? 0] : void 0) ?? (s ? i?.[s] : void 0) ?? e.name;
+  const t = e.data, i = t !== null && typeof t == "object" && !Array.isArray(t) ? t : void 0, r = i?.value ?? e.value ?? t, s = e.encode?.x?.[0], n = s === void 0 ? void 0 : e.dimensionNames?.[s], a = i?.x ?? (Array.isArray(r) && (s !== void 0 || !e.name) ? r[s ?? 0] : void 0) ?? (n ? i?.[n] : void 0) ?? e.name;
   return {
     label: a == null ? "" : String(a),
     datasetLabel: e.seriesName ?? "",
@@ -652,12 +652,12 @@ function rt(e, t) {
   if (e.trim())
     return e.trim();
   const { option: i } = ie(t), r = i?.title ?? (P(i?.baseOption) ? i.baseOption.title : void 0);
-  for (const n of Array.isArray(r) ? r : [r])
-    if (P(n) && typeof n.text == "string" && n.text.trim())
-      return n.text.trim();
+  for (const s of Array.isArray(r) ? r : [r])
+    if (P(s) && typeof s.text == "string" && s.text.trim())
+      return s.text.trim();
   return "Chart";
 }
-function nt(e) {
+function st(e) {
   if (typeof e != "string")
     return !1;
   try {
@@ -666,14 +666,14 @@ function nt(e) {
     return !1;
   }
 }
-function st(e) {
+function nt(e) {
   function t(i, r = "") {
     if (Array.isArray(i))
       return i.map((o) => t(o, r));
     if (!P(i))
       return i;
-    const n = Object.entries(i).flatMap(([o, a]) => (o === "link" || o === "sublink") && !nt(a) ? (console.warn(`[wippy-echarts] Ignored unsafe ${o} URL.`), [[o, null]]) : [[o, t(a, o)]]), s = Object.fromEntries(n);
-    return r === "tooltip" ? { ...s, renderMode: "richText" } : s;
+    const s = Object.entries(i).flatMap(([o, a]) => (o === "link" || o === "sublink") && !st(a) ? (console.warn(`[wippy-echarts] Ignored unsafe ${o} URL.`), [[o, null]]) : [[o, t(a, o)]]), n = Object.fromEntries(s);
+    return r === "tooltip" ? { ...n, renderMode: "richText" } : n;
   }
   return t(e);
 }
@@ -691,7 +691,7 @@ function re(e) {
   if (P(e.baseOption))
     return { ...e, baseOption: re(e.baseOption) };
   const t = (i) => {
-    const r = P(i) ? i : {}, { appendTo: n, appendToBody: s, ...o } = r;
+    const r = P(i) ? i : {}, { appendTo: s, appendToBody: n, ...o } = r;
     return { confine: !0, ...o };
   };
   return {
@@ -702,18 +702,18 @@ function re(e) {
 }
 function ot(e, t, i, r = () => {
 }) {
-  let n, s, o = !1, a = 0, l = "", p = "", b, c, h = !1, u = !1;
+  let s, n, o = !1, a = 0, l = "", p = "", b, c, h = !1, u = !1;
   function v() {
-    u = !1, n?.dispose(), n = void 0;
+    u = !1, s?.dispose(), s = void 0;
   }
   function C(d) {
     a++, h = !1, r(!1), v();
-    const g = d instanceof Error ? d.message : String(d);
-    i(g), t("chart-error", { message: g });
+    const _ = d instanceof Error ? d.message : String(d);
+    i(_), t("chart-error", { message: _ });
   }
   return {
-    async render(d, g, S) {
-      const _ = ++a;
+    async render(d, _, S) {
+      const g = ++a;
       if (o) return;
       h = !0;
       const E = ie(d.options);
@@ -721,41 +721,41 @@ function ot(e, t, i, r = () => {
         C(new Error(E.error));
         return;
       }
-      i(null), n || r(!0);
+      i(null), s || r(!0);
       try {
-        if (!e.clientWidth || !e.clientHeight || d.lazyInit && !S || (s ??= await Ze(), o || _ !== a))
+        if (!e.clientWidth || !e.clientHeight || d.lazyInit && !S || (n ??= await Ze(), o || g !== a))
           return;
-        const m = JSON.stringify(g);
-        n && (l !== d.renderer || p !== m) && v();
+        const m = JSON.stringify(_);
+        s && (l !== d.renderer || p !== m) && v();
         let x = !1;
-        if (!n) {
-          n = s.init(e, g, { renderer: d.renderer }), l = d.renderer, p = m, x = !0;
+        if (!s) {
+          s = n.init(e, _, { renderer: d.renderer }), l = d.renderer, p = m, x = !0;
           for (const [y, w] of [
             ["click", "chart-click"],
             ["dblclick", "chart-dblclick"],
             ["mouseover", "chart-hover"]
           ])
-            n.on(y, (z) => {
+            s.on(y, (z) => {
               const V = et(z);
               V && t(w, V);
             });
-          n.on("legendselectchanged", (y) => t("legend-change", tt(y))), n.on("datazoom", (y) => t("datazoom", it(y))), n.on("finished", () => {
+          s.on("legendselectchanged", (y) => t("legend-change", tt(y))), s.on("datazoom", (y) => t("datazoom", it(y))), s.on("finished", () => {
             u && (u = !1, t("chart-rendered", {}));
           });
         }
-        n.group = d.group, d.group && s.connect(d.group), (x || b !== d.options || c !== d.notMerge) && (u = !0, n.setOption(s.withFormatters(st(re(E.option))), {
+        s.group = d.group, d.group && n.connect(d.group), (x || b !== d.options || c !== d.notMerge) && (u = !0, s.setOption(n.withFormatters(nt(re(E.option)), void 0, _), {
           notMerge: d.notMerge,
           lazyUpdate: d.lazyUpdate
         }), b = d.options, c = d.notMerge), r(!1), h = !1;
       } catch (m) {
-        !o && _ === a && C(m);
+        !o && g === a && C(m);
       }
     },
     fail: C,
-    initialized: () => !!n,
+    initialized: () => !!s,
     pending: () => h,
     resize() {
-      n?.resize();
+      s?.resize();
     },
     stop() {
       o = !0, a++, h = !1, r(!1), v(), b = void 0, c = void 0;
@@ -787,9 +787,9 @@ const ct = [
   "#D55E00"
 ];
 function ut(e, t, i = !1) {
-  const r = (p, b) => e.getPropertyValue(p).trim() || b, n = r("--p-text-color", e.color), s = r("--p-text-muted-color", n), o = r("--p-content-border-color", s), a = r("--p-content-background", "transparent"), l = {
-    nameTextStyle: { color: s },
-    axisLabel: { color: s },
+  const r = (p, b) => e.getPropertyValue(p).trim() || b, s = r("--p-text-color", e.color), n = r("--p-text-muted-color", s), o = r("--p-content-border-color", n), a = r("--p-content-background", "transparent"), l = {
+    nameTextStyle: { color: n },
+    axisLabel: { color: n },
     axisLine: { lineStyle: { color: o } },
     axisTick: { lineStyle: { color: o } },
     splitLine: { lineStyle: { color: o } }
@@ -798,23 +798,23 @@ function ut(e, t, i = !1) {
     darkMode: i,
     backgroundColor: "transparent",
     color: t ?? ct.map((p, b) => r(`--wippy-chart-${b + 1}`, p)),
-    textStyle: { color: n, fontFamily: e.fontFamily },
-    title: { textStyle: { color: n }, subtextStyle: { color: s } },
+    textStyle: { color: s, fontFamily: e.fontFamily },
+    title: { textStyle: { color: s }, subtextStyle: { color: n } },
     tooltip: {
       backgroundColor: a,
       borderColor: o,
-      textStyle: { color: n }
+      textStyle: { color: s }
     },
-    legend: { textStyle: { color: n }, inactiveColor: s },
+    legend: { textStyle: { color: s }, inactiveColor: n },
     categoryAxis: l,
     valueAxis: l,
     timeAxis: l,
     logAxis: l,
-    line: { label: { color: n } },
-    bar: { label: { color: n } },
-    pie: { label: { color: n }, labelLine: { lineStyle: { color: o } } },
-    radar: { axisName: { color: s }, axisLine: { lineStyle: { color: o } }, splitLine: { lineStyle: { color: o } } },
-    calendar: { itemStyle: { color: a, borderColor: o }, dayLabel: { color: s }, monthLabel: { color: n }, yearLabel: { color: n } }
+    line: { label: { color: s } },
+    bar: { label: { color: s } },
+    pie: { label: { color: s }, labelLine: { lineStyle: { color: o } } },
+    radar: { axisName: { color: n }, axisLine: { lineStyle: { color: o } }, splitLine: { lineStyle: { color: o } } },
+    calendar: { itemStyle: { color: a, borderColor: o }, dayLabel: { color: n }, monthLabel: { color: s }, yearLabel: { color: s } }
   };
 }
 const pt = ["aria-label", "aria-busy"], dt = {
@@ -824,16 +824,16 @@ const pt = ["aria-label", "aria-busy"], dt = {
 }, ht = ["title"], ft = /* @__PURE__ */ oe({
   __name: "echarts-canvas",
   setup(e) {
-    const t = Qe(), i = Xe(), r = O(null), n = O(null), s = O(!0), o = H(() => !n.value && (s.value || t.value.loading)), a = H(() => rt(t.value.label, t.value.options));
-    let l, p, b, c, h, u, v, C, d, g = 0, S = !1, _ = "auto";
+    const t = Qe(), i = Xe(), r = O(null), s = O(null), n = O(!0), o = U(() => !s.value && (n.value || t.value.loading)), a = U(() => rt(t.value.label, t.value.options));
+    let l, p, b, c, h, u, v, C, d, _ = 0, S = !1, g = "auto";
     function E(y = !1) {
       if (!(!l || !r.value))
         try {
           const w = lt(t.value);
           if (!v || y || C !== t.value.palette || d !== w.themeMode) {
-            const z = w.themeMode === "auto" ? _ : w.themeMode, V = r.value.getRootNode(), ne = V instanceof ShadowRoot ? V.host : r.value;
+            const z = w.themeMode === "auto" ? g : w.themeMode, V = r.value.getRootNode(), se = V instanceof ShadowRoot ? V.host : r.value;
             v = ut(
-              getComputedStyle(ne),
+              getComputedStyle(se),
               w.palette,
               z === "dark" || z === "auto" && !!c?.matches
             ), C = t.value.palette, d = w.themeMode;
@@ -844,33 +844,33 @@ const pt = ["aria-label", "aria-busy"], dt = {
         }
     }
     function m() {
-      cancelAnimationFrame(g), g = requestAnimationFrame(() => E(!0));
+      cancelAnimationFrame(_), _ = requestAnimationFrame(() => E(!0));
     }
     function x() {
-      t.value.themeMode === "auto" && _ === "auto" && m();
+      t.value.themeMode === "auto" && g === "auto" && m();
     }
     return ae(() => {
       r.value && (l = ot(
         r.value,
         i,
-        (y) => n.value = y,
-        (y) => s.value = y
-      ), _ = K.getThemeMode(), c = matchMedia("(prefers-color-scheme: dark)"), c.addEventListener("change", x), h = D("@theme", (y) => {
-        _ = y, m();
+        (y) => s.value = y,
+        (y) => n.value = y
+      ), g = G.getThemeMode(), c = matchMedia("(prefers-color-scheme: dark)"), c.addEventListener("change", x), h = D("@theme", (y) => {
+        g = y, m();
       }), u = D("@config", m), p = new ResizeObserver(() => {
         t.value.autoresize && l?.resize(), (!l?.initialized() || l.pending()) && E();
       }), p.observe(r.value), typeof IntersectionObserver < "u" ? (b = new IntersectionObserver((y) => {
         y.some((w) => w.isIntersecting) && (S = !0, b?.disconnect(), E());
       }, { rootMargin: "200px" }), b.observe(r.value)) : S = !0, E());
     }), le(t, () => E(), { deep: !0, flush: "post" }), ce(() => {
-      cancelAnimationFrame(g), p?.disconnect(), b?.disconnect(), c?.removeEventListener("change", x), h?.(), u?.(), l?.stop();
+      cancelAnimationFrame(_), p?.disconnect(), b?.disconnect(), c?.removeEventListener("change", x), h?.(), u?.(), l?.stop();
     }), (y, w) => (k(), N("div", {
       class: "echarts-container",
       role: "figure",
       "aria-label": a.value,
       "aria-busy": o.value
     }, [
-      n.value ? (k(), N("div", dt, ue(n.value), 1)) : $("", !0),
+      s.value ? (k(), N("div", dt, ue(s.value), 1)) : H("", !0),
       pe("div", {
         ref_key: "container",
         ref: r,
@@ -881,13 +881,13 @@ const pt = ["aria-label", "aria-busy"], dt = {
         class: "echarts-loading",
         "no-bg": "",
         title: de(t).loadingText
-      }, null, 8, ht)) : $("", !0)
+      }, null, 8, ht)) : H("", !0)
     ], 8, pt));
   }
-}), mt = ":host{display:block;width:100%;height:100%;aspect-ratio:2 / 1;box-sizing:border-box}:host>div{width:100%;height:100%}.echarts-container{position:relative;width:100%;height:100%;box-sizing:border-box}.echarts-canvas-wrapper{position:relative;width:100%;height:100%}.echarts-error{position:absolute;inset:0;z-index:1;box-sizing:border-box;overflow:auto;padding:12px 16px;border-radius:6px;background:var(--p-content-background);color:var(--p-danger-color);border:1px solid var(--p-danger-color);font-family:inherit;font-size:13px;line-height:1.4}.echarts-loading{position:absolute;inset:0;z-index:1}", bt = { props: { type: "object", properties: { options: { type: "string", default: "", description: 'Complete desired ECharts option as a JSON string, always a full option and never a patch, including with not-merge=false. Empty means {}. Include all settings needed to initialize a fresh chart. Formatter callbacks accept {$format: spec}, for example {"tooltip":{"trigger":"axis","axisPointer":{"label":{"formatter":{"$format":"date"}}}}}. Specs: number, number:0..20, compact, percent, integer, date, datetime, month, time:<ECharts template>. Uses document language, then browser locale. Unknown specs warn and use defaults. JSON strings never execute.' }, "theme-mode": { type: "string", default: "auto", description: "Auto follows the host theme mode; light/dark override ECharts contrast mode locally. Resolved host tokens remain authoritative.", enum: ["auto", "light", "dark"] }, palette: { type: "string", default: "", description: "JSON array of color strings. Overrides --wippy-chart-1..8 and the documented fallback palette. Empty uses CSS colors." }, renderer: { type: "string", default: "canvas", description: "ECharts rendering backend. Changing it disposes and recreates from the current full option, resetting zoom, legend selection and other interaction state.", enum: ["canvas", "svg"] }, autoresize: { type: "boolean", default: !0, description: "Resize with the container using ResizeObserver." }, loading: { type: "boolean", default: !1, description: "Show the platform wippy-loading overlay inside the reserved chart box." }, "loading-text": { type: "string", default: "Loading…", description: "Title of the platform loading overlay, including during the first engine load." }, "not-merge": { type: "boolean", default: !0, description: "Controls how a new full option is applied to the live chart. True replaces (default); false uses native ECharts merge for data animation and retained zoom/legend state unless explicitly overridden. Never enables patch input." }, "lazy-update": { type: "boolean", default: !1, description: "Defer the ECharts option update until the next animation frame." }, group: { type: "string", default: "", description: "ECharts connect group id. Empty disables group membership." }, label: { type: "string", default: "", description: "Accessible figure name. Empty uses the first non-empty option title text, then Chart." }, "lazy-init": { type: "boolean", default: !1, description: "Wait until within 200px of the viewport before loading ECharts and initializing. Falls back to immediate initialization without IntersectionObserver." } } } }, yt = {
+}), mt = ":host{display:block;width:100%;height:100%;aspect-ratio:2 / 1;box-sizing:border-box}:host>div{width:100%;height:100%}.echarts-container{position:relative;width:100%;height:100%;box-sizing:border-box}.echarts-canvas-wrapper{position:relative;width:100%;height:100%}.echarts-error{position:absolute;inset:0;z-index:1;box-sizing:border-box;overflow:auto;padding:12px 16px;border-radius:6px;background:var(--p-content-background);color:var(--p-danger-color);border:1px solid var(--p-danger-color);font-family:inherit;font-size:13px;line-height:1.4}.echarts-loading{position:absolute;inset:0;z-index:1}", bt = { props: { type: "object", properties: { options: { type: "string", default: "", description: 'Complete desired ECharts option as JSON, including with not-merge=false. Empty means {}. Formatter callbacks accept {$format: spec}: number, number:0..20, compact, percent, integer, date, datetime, month or time:<template>. Colours accept $seriesColor with alpha, $seriesGradient with from/to/direction, or $themeColor with text/muted/border/surface and optional alpha. Example: {"series":[{"type":"line","data":[1,2],"areaStyle":{"color":{"$seriesGradient":{"from":0.35,"to":0}}}}]}. Alpha must be 0 to 1. Colours resolve again on theme or palette changes. Invalid markers warn and use defaults. JSON never executes.' }, "theme-mode": { type: "string", default: "auto", description: "Auto follows the host theme mode; light/dark override ECharts contrast mode locally. Resolved host tokens remain authoritative.", enum: ["auto", "light", "dark"] }, palette: { type: "string", default: "", description: "JSON array of color strings. Overrides --wippy-chart-1..8 and the documented fallback palette. Empty uses CSS colors." }, renderer: { type: "string", default: "canvas", description: "ECharts rendering backend. Changing it disposes and recreates from the current full option, resetting zoom, legend selection and other interaction state.", enum: ["canvas", "svg"] }, autoresize: { type: "boolean", default: !0, description: "Resize with the container using ResizeObserver." }, loading: { type: "boolean", default: !1, description: "Show the platform wippy-loading overlay inside the reserved chart box." }, "loading-text": { type: "string", default: "Loading…", description: "Title of the platform loading overlay, including during the first engine load." }, "not-merge": { type: "boolean", default: !0, description: "Controls how a new full option is applied to the live chart. True replaces (default); false uses native ECharts merge for data animation and retained zoom/legend state unless explicitly overridden. Never enables patch input." }, "lazy-update": { type: "boolean", default: !1, description: "Defer the ECharts option update until the next animation frame." }, group: { type: "string", default: "", description: "ECharts connect group id. Empty disables group membership." }, label: { type: "string", default: "", description: "Accessible figure name. Empty uses the first non-empty option title text, then Chart." }, "lazy-init": { type: "boolean", default: !1, description: "Wait until within 200px of the viewport before loading ECharts and initializing. Falls back to immediate initialization without IntersectionObserver." } } } }, yt = {
   wippy: bt
 };
-class _t extends Ge {
+class _t extends Ke {
   static get wippyConfig() {
     return {
       propsSchema: yt.wippy.props,

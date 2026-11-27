@@ -86,6 +86,36 @@ For an axis-trigger tooltip on a time axis, set the pointer label formatter to f
 
 The tooltip header displays a locale date such as `11/20/2026`, without `00:00:00`.
 
+## Theme colour markers
+
+Use these JSON markers wherever ECharts accepts a colour, including `itemStyle`, `lineStyle`, `areaStyle`, nested data items, `shadowColor`, graphic styles and title text. The element resolves them alongside `$format` markers just before `setOption`. Theme and palette changes resolve the original JSON again.
+
+| Marker | Result |
+| --- | --- |
+| `{ "$seriesColor": { "alpha": 0.6 } }` | The containing series colour with the requested alpha. Alpha defaults to 1. |
+| `{ "$seriesGradient": { "from": 0.35, "to": 0, "direction": "vertical" } }` | A linear gradient from the series colour at alpha `from` to alpha `to`. These are the defaults. `horizontal` runs left to right; `vertical` runs top to bottom. |
+| `{ "$themeColor": "border", "alpha": 0.5 }` | A resolved host colour. Choose `text`, `muted`, `border` or `surface`. Alpha defaults to 1. |
+
+The series colour comes from its explicit string `itemStyle.color`, then its explicit string `lineStyle.color`, then the element's palette at `seriesIndex % palette.length`. A data item's own colour does not change the containing series colour. Series markers require a containing series. The element owns the palette precedence described below, so consumers need no palette values.
+
+`text`, `muted`, `border` and `surface` use the same resolved text, muted text, content border and content background tokens as the chart theme. Colours become sRGB `rgba()` strings. Alpha replaces any alpha in the source CSS colour and must be a finite number from 0 to 1. Hex, RGB, HSL and browser-supported CSS colours such as OKLCH and `color()` are supported.
+
+Unknown markers, extra fields, invalid values and colour markers in formatter positions are dropped with one console warning per descriptor. ECharts then uses its defaults. `$format` descriptors remain separate and are never inspected as colour markers. No JSON text executes.
+
+```json
+{
+  "xAxis": { "type": "category", "data": ["A", "B"] },
+  "yAxis": {},
+  "series": [{
+    "type": "line",
+    "data": [1, 2],
+    "areaStyle": { "color": { "$seriesGradient": { "from": 0.35, "to": 0 } } },
+    "lineStyle": { "shadowColor": { "$seriesColor": { "alpha": 0.6 } }, "shadowBlur": 8 },
+    "markLine": { "lineStyle": { "color": { "$themeColor": "border", "alpha": 0.5 } }, "data": [{ "yAxis": 1 }] }
+  }]
+}
+```
+
 ## Theme
 
 The shadow root requests `themeConfigUrl`. Text uses `--p-text-color`, muted text uses `--p-text-muted-color`, borders and axes use `--p-content-border-color`, and tooltip and calendar surfaces use `--p-content-background`. The chart background is transparent. Font family uses only the host's computed font. Values are read from the custom element host so explicit token overrides survive inner theme-root defaults. The component does not redefine host tokens or toggle theme classes.
@@ -177,14 +207,14 @@ After verification, remove `frontend/node_modules` before starting a Wippy app w
 
 ## Bundle size
 
-Measured with Node `gzipSync`, each file compressed independently, in the production build on 2026-11-26:
+Measured with Node `gzipSync`, each file compressed independently, in the production build on 2026-11-27:
 
 | Chunk | Raw bytes | Gzip bytes |
 | --- | ---: | ---: |
-| Element entry `index.js` | 38,936 | 12,287 |
-| Lazy ECharts engine | 1,075,722 | 296,758 |
+| Element entry `index.js` | 39,029 | 12,343 |
+| Lazy ECharts engine | 1,078,555 | 297,655 |
 
-The lazy engine includes the registered chart types, components and declarative formatter support. Formatter resolution and ECharts time utilities remain behind the dynamic import. Adding chart types or components requires a new size measurement.
+The lazy engine includes the registered chart types, components, declarative formatters and colour markers. Marker resolution and ECharts time utilities remain behind the dynamic import. Adding chart types or components requires a new size measurement.
 
 Externals match `src/chartjs`: `vue`, `pinia`, `@iconify/vue`, `@wippy-fe/proxy`. Wippy component base packages remain bundled, as required by the FE skill. Theme CSS is delivered through `hostCssKeys`, rather than duplicating default token declarations in the entry. Production resolves ECharts' environment checks at build time because direct browser consumers have no Node `process` global. `build:debug` preserves development checks. `emptyOutDir` removes obsolete hashed chunks on each build.
 

@@ -35,6 +35,26 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks())
 
 describe('lazy chart controller', () => {
+  it('resolves the original color markers again when tokens or palette change', async () => {
+    const { controller } = setup()
+    const props = resolveProps({ options: JSON.stringify({
+      title: { textStyle: { color: { $themeColor: 'text' } } },
+      series: [{ type: 'pie', itemStyle: { color: { $seriesColor: { alpha: 0.6 } } } }],
+    }) })
+    const light = buildTheme({ getPropertyValue: () => '', color: '#111111', fontFamily: 'Test' }, ['#123456'])
+    const dark = buildTheme({ getPropertyValue: () => '', color: '#eeeeee', fontFamily: 'Test' }, ['#abcdef'], true)
+    await controller.render(props, light, true)
+    expect(mocks.chart.setOption.mock.calls[0]?.[0]).toMatchObject({
+      title: { textStyle: { color: 'rgba(17, 17, 17, 1)' } }, series: [{ itemStyle: { color: 'rgba(18, 52, 86, 0.6)' } }],
+    })
+    await controller.render(props, dark, true)
+    expect(mocks.chart.dispose).toHaveBeenCalledOnce()
+    expect(mocks.chart.setOption.mock.calls[1]?.[0]).toMatchObject({
+      title: { textStyle: { color: 'rgba(238, 238, 238, 1)' } }, series: [{ itemStyle: { color: 'rgba(171, 205, 239, 0.6)' } }],
+    })
+    await controller.render(props, { ...dark, color: ['#0000ff'] }, true)
+    expect(mocks.chart.setOption.mock.calls[2]?.[0].series[0].itemStyle.color).toBe('rgba(0, 0, 255, 0.6)')
+  })
   it('replaces declarative callbacks before setOption', async () => {
     const { controller } = setup()
     await controller.render(resolveProps({ options: JSON.stringify({

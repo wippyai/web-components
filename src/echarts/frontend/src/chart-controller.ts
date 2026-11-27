@@ -95,7 +95,7 @@ export function createChartController(container: HTMLElement, emit: Emit, error:
           runtime.connect(props.group)
         if (initialized || lastJSON !== props.options || lastNotMerge !== props.notMerge) {
           renderRequested = true
-          chart.setOption(runtime.withFormatters(secureOptions(withDefaults(parsed.option))), {
+          chart.setOption(runtime.withFormatters(secureOptions(withDefaults(parsed.option)), undefined, theme), {
             notMerge: props.notMerge,
             lazyUpdate: props.lazyUpdate,
           })

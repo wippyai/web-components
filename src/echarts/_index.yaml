@@ -104,7 +104,7 @@ entries:
           options:
             type: "string"
             default: ""
-            description: "Complete desired ECharts option as a JSON string, always a full option and never a patch, including with not-merge=false. Empty means {}. Include all settings needed to initialize a fresh chart. Formatter callbacks accept {$format: spec}, for example {\"tooltip\":{\"trigger\":\"axis\",\"axisPointer\":{\"label\":{\"formatter\":{\"$format\":\"date\"}}}}}. Specs: number, number:0..20, compact, percent, integer, date, datetime, month, time:<ECharts template>. Uses document language, then browser locale. Unknown specs warn and use defaults. JSON strings never execute."
+            description: 'Complete desired ECharts option as JSON, including with not-merge=false. Empty means {}. Formatter callbacks accept {$format: spec}: number, number:0..20, compact, percent, integer, date, datetime, month or time:<template>. Colours accept $seriesColor with alpha, $seriesGradient with from/to/direction, or $themeColor with text/muted/border/surface and optional alpha. Example: {"series":[{"type":"line","data":[1,2],"areaStyle":{"color":{"$seriesGradient":{"from":0.35,"to":0}}}}]}. Alpha must be 0 to 1. Colours resolve again on theme or palette changes. Invalid markers warn and use defaults. JSON never executes.'
           theme-mode:
             type: "string"
             default: "auto"
